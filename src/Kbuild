@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+obj-m := acer-wmi.o
+
+ifdef VERSION
+ccflags-y += -DACER_WMI_VERSION='"$(VERSION)"'
+endif

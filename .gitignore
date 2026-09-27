@@ -1,0 +1,40 @@
+# Adapted from the Linux kernel's top-level .gitignore, keeping the rules
+# that apply to an external module build.
+
+# Build output, including Kbuild's dot-files (.*.cmd, .module-common.o)
+.*
+*.dwo
+*.i
+*.ko
+*.lst
+*.mod
+*.mod.c
+*.o
+*.o.*
+*.s
+*.su
+*.symtypes
+Module.symvers
+modules.order
+
+# Dot-files that belong in the tree
+!.clang-format
+!.editorconfig
+!.gitattributes
+!.gitignore
+
+# Leavings from module signing
+signing_key.pem
+signing_key.priv
+signing_key.x509
+x509.genkey
+
+# Clang's compilation database
+compile_commands.json
+
+# Editor backups and tag files
+*~
+\#*#
+tags
+TAGS
+cscope.*
