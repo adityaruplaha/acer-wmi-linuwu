@@ -48,14 +48,14 @@ The thermal profile is the kernel's standard platform profile interface, in `/sy
 
 | Model | Platform profile | Sensors | `fan_speed` | hwmon pwm | Turbo key | Sense settings | Four-zone RGB | Reported in |
 |---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|---|
-| Nitro AN515-55 | ❌ | ✅ | ✅ | ❌ | ❌ | NitroSense | ❌ | [LS#40](https://github.com/0x7375646F/Linuwu-Sense/issues/40) |
+| Nitro AN515-55 | ❌ | ✅ | ✅ | ❌ | ❌ | NitroSense | ✅ | [LS#40](https://github.com/0x7375646F/Linuwu-Sense/issues/40), keyboard: [BillyAddlers' fork](https://github.com/BillyAddlers/Linuwu-Sense-AN515-55-Patch) |
 | Nitro AN515-47 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense | ❌ | [DAMX#44](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/44) |
 | Nitro ANV15-41 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense | ❌ | Linuwu-Sense |
 | Nitro ANV15-51 | ✅ | ✅ | ✅ | ✅ | ❌ | NitroSense | ❌ | Linuwu-Sense, upstream [patch](https://patchwork.kernel.org/project/platform-driver-x86/patch/20260920053918.1888-1-justinyvar@gmail.com/) |
 | Nitro ANV15-52 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense | ❌ | [LS#117](https://github.com/0x7375646F/Linuwu-Sense/issues/117), [DLS#14](https://github.com/PXDiv/Div-Linuwu-Sense/issues/14) |
 | Nitro AN17-41, AN17-42 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense | ✅ | [DAMX#99](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/99), [DAMX#64](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/64) |
 | Nitro AN515-46 | ✅ | ✅ | ✅ | ✅ | ❌ | NitroSense | ✅ | [DLS#4](https://github.com/PXDiv/Div-Linuwu-Sense/issues/4) |
-| Nitro AN515-58 | ✅ | ✅ | ✅ | ✅ | ❌ | NitroSense | ✅ | upstream, Linuwu-Sense |
+| Nitro AN515-58 | ✅ | ✅ | ✅ | ✅ | ❌ | NitroSense | ✅ | upstream, Linuwu-Sense, keyboard: [fabiannabil1's fix](https://github.com/fabiannabil1/Linuwu-AN515-58-Linuwu-Sense-Fix) |
 | Nitro AN515-44 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense v4 | ❌ | [DAMX compatibility list](https://github.com/PXDiv/Div-Acer-Manager-Max/blob/main/Compatibility.md) |
 | Nitro AN515-57 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense v4 | ❌ | [notalhanz/Linuwu-Sense](https://github.com/notalhanz/Linuwu-Sense/commit/c63f98e0a445a9387fc28c569df71f719edb1a8f) |
 | Nitro ANV16-41 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense v4 | ❌ | [LS#37](https://github.com/0x7375646F/Linuwu-Sense/issues/37) |
@@ -88,7 +88,8 @@ The thermal profile is the kernel's standard platform profile interface, in `/sy
 
 - **ANV15-51**: the firmware rejects the performance profile with an I/O error, although it is offered, as in the upstream driver ([patch](https://patchwork.kernel.org/project/platform-driver-x86/patch/20260920053918.1888-1-justinyvar@gmail.com/)).
 - **ANV15-51 and ANV15-52**: the NitroSense key is an ordinary keyboard scancode, `0xf5`, rather than a WMI event, so this driver never sees it. systemd's hwdb maps it to `prog1` on the ANV15-51 ([systemd#38415](https://github.com/systemd/systemd/pull/38415)); bind that key in userspace to cycle profiles ([LS#117](https://github.com/0x7375646F/Linuwu-Sense/issues/117)).
-- **AN515-58**: on BIOS V2.18 the static keyboard effect turns the lights off, even with valid parameters ([LS#99](https://github.com/0x7375646F/Linuwu-Sense/issues/99)), and on BIOS V2.19 the battery limiter is accepted but has no effect ([DAMX#184](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/184)). Both are firmware behaviour.
+- **AN515-58 and AN515-55**: the four-zone keyboard needs a different lighting protocol, without which the static effect turns the AN515-58's lights off ([LS#99](https://github.com/0x7375646F/Linuwu-Sense/issues/99)). The driver uses the protocol from [fabiannabil1's fix](https://github.com/fabiannabil1/Linuwu-AN515-58-Linuwu-Sense-Fix), which [BillyAddlers' fork](https://github.com/BillyAddlers/Linuwu-Sense-AN515-55-Patch) confirmed on the AN515-55; this rewrite of it has not been tested on either model.
+- **AN515-58**: on BIOS V2.19 the battery limiter is accepted but has no effect ([DAMX#184](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/184)), which is firmware behaviour.
 - **PHN16S-71**: the fans read 0 RPM and do not respond to control ([DAMX#270](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/270)), so only the platform profile and temperatures are enabled.
 - **PHN16S-71 and PHN18-72**: the keyboard lighting does not respond to the WMI methods ([LS#101](https://github.com/0x7375646F/Linuwu-Sense/issues/101), [DAMX#123](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/123)), so four-zone control is not enabled on them. Nor is it enabled on the PHN16-73 and ANV16S-41, for which no report says it works.
 - **Per-key RGB keyboards**, such as the Helios 16's, are not supported; the four-zone methods have no effect on them ([DAMX#237](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/237)).
@@ -209,6 +210,8 @@ This version was written by Claude (Anthropic's Claude Opus 5.5, working in Clau
 - [Linuwu-Sense](https://github.com/0x7375646F/Linuwu-Sense) by 0x7375646F, which reverse engineered the NitroSense and PredatorSense methods, and its contributors.
 - [Div-Linuwu-Sense](https://github.com/PXDiv/Div-Linuwu-Sense) by Div Sharp (PXDiv), the author of DAMX.
 - [acer-predator-turbo-and-rgb-keyboard-linux-module](https://github.com/JafarAkhondali/acer-predator-turbo-and-rgb-keyboard-linux-module), which inspired Linuwu-Sense.
+- [fabiannabil1](https://github.com/fabiannabil1/Linuwu-AN515-58-Linuwu-Sense-Fix), who found the alternative keyboard lighting protocol the AN515-58 needs: the effect-buffer constants, switching the zones on through the gaming LED method first, and writing each zone as four bytes with the brightness applied.
+- [BillyAddlers](https://github.com/BillyAddlers/Linuwu-Sense-AN515-55-Patch), who confirmed that protocol on the AN515-55, and whose fork also drops the `CLEAN` directive that dkms 3.1 and later deprecate, as this package now does.
 
 ## Licence
 

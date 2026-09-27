@@ -11,6 +11,11 @@
  *  Nitro/Predator Sense extensions based on Linuwu-Sense and Div-Linuwu-Sense:
  *    Copyright (C) 2025	0x7375646F <https://github.com/0x7375646F>
  *    Copyright (C) 2025	Div Sharp <divsharp@gmail.com>
+ *
+ *  Keyboard lighting protocol for the Nitro AN515-58, as found by fabiannabil1
+ *  <https://github.com/fabiannabil1/Linuwu-AN515-58-Linuwu-Sense-Fix> and
+ *  carried to the AN515-55 by BillyAddlers
+ *  <https://github.com/BillyAddlers/Linuwu-Sense-AN515-55-Patch>.
  */
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -479,6 +484,7 @@ struct quirk_entry {
 	bool pwm;
 	enum acer_sense_type sense;
 	bool four_zone_kbd;
+	bool four_zone_kbd_alt;
 };
 
 static struct quirk_entry *quirks;
@@ -581,10 +587,15 @@ static struct quirk_entry quirk_acer_nitro_anv15_51 = {
 	.sense = ACER_SENSE_NITRO,
 };
 
-/* Older Nitro models do not implement the platform profile interface */
+/*
+ * Older Nitro models do not implement the platform profile interface. The
+ * AN515-55's keyboard uses the alternative lighting protocol.
+ */
 static struct quirk_entry quirk_acer_nitro_an515_55 = {
 	.hwmon = true,
 	.sense = ACER_SENSE_NITRO,
+	.four_zone_kbd = true,
+	.four_zone_kbd_alt = true,
 };
 
 /*
@@ -592,12 +603,22 @@ static struct quirk_entry quirk_acer_nitro_an515_55 = {
  * Div-Linuwu-Sense, which dropped them for this model after reports that
  * enabling LCD overdrive affected other Nitro models.
  */
+static struct quirk_entry quirk_acer_nitro_an515_46 = {
+	.hwmon = true,
+	.platform_profile = true,
+	.pwm = true,
+	.sense = ACER_SENSE_NITRO,
+	.four_zone_kbd = true,
+};
+
+/* As the AN515-46, but its keyboard uses the alternative lighting protocol */
 static struct quirk_entry quirk_acer_nitro_an515_58 = {
 	.hwmon = true,
 	.platform_profile = true,
 	.pwm = true,
 	.sense = ACER_SENSE_NITRO,
 	.four_zone_kbd = true,
+	.four_zone_kbd_alt = true,
 };
 
 static struct quirk_entry quirk_acer_nitro_v4 = {
@@ -940,7 +961,7 @@ static const struct dmi_system_id acer_quirks[] __initconst = {
 			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
 			DMI_MATCH(DMI_PRODUCT_NAME, "Nitro AN515-46"),
 		},
-		.driver_data = &quirk_acer_nitro_an515_58,
+		.driver_data = &quirk_acer_nitro_an515_46,
 	},
 	{
 		/* DAMX#44, where LCD overdrive had no effect */
@@ -953,7 +974,7 @@ static const struct dmi_system_id acer_quirks[] __initconst = {
 		.driver_data = &quirk_acer_nitro,
 	},
 	{
-		/* LS#40 */
+		/* LS#40; keyboard: BillyAddlers/Linuwu-Sense-AN515-55-Patch */
 		.callback = dmi_matched,
 		.ident = "Acer Nitro AN515-55",
 		.matches = {
@@ -973,6 +994,7 @@ static const struct dmi_system_id acer_quirks[] __initconst = {
 		.driver_data = &quirk_acer_nitro_v4,
 	},
 	{
+		/* Keyboard: fabiannabil1/Linuwu-AN515-58-Linuwu-Sense-Fix, LS#99 */
 		.callback = dmi_matched,
 		.ident = "Acer Nitro AN515-58",
 		.matches = {
@@ -3576,6 +3598,14 @@ static const struct attribute_group predator_sense_group = {
  * The keyboard either runs one of the firmware's lighting effects, set with
  * the keyboard backlight method, or shows a static colour per zone, set with
  * the RGB keyboard method after selecting the static effect.
+ *
+ * Some keyboards need an alternative protocol, found empirically by
+ * fabiannabil1 on the AN515-58 and confirmed on the AN515-55 by BillyAddlers:
+ * different constants in the effect buffer, the zones switched on through the
+ * gaming LED method before their colours are written, the colours written as
+ * four bytes with the brightness already applied, and the static effect
+ * selected afterwards rather than before. Without it the static effect turns
+ * the AN515-58's keyboard lights off.
  */
 enum acer_kbd_effect_mode {
 	ACER_KBD_EFFECT_STATIC		= 0,
@@ -3589,21 +3619,26 @@ enum acer_kbd_effect_mode {
 };
 
 #define ACER_KBD_EFFECT_SPEED_MAX	9
+#define ACER_KBD_EFFECT_ALT_WAVE_FLAG	8
 #define ACER_KBD_BRIGHTNESS_MAX		100
 #define ACER_KBD_DIRECTION_MAX		2
 
+/*
+ * @wave_flag is only used by the alternative protocol, which sets it for the
+ * wave effect. @unknown holds constants whose meaning is unknown: { 3, 1 } in
+ * the standard protocol and { 0, 1 } in the alternative one.
+ */
 struct acer_kbd_effect_input {
 	u8 mode;
 	u8 speed;
 	u8 brightness;
-	u8 reserved1;
+	u8 wave_flag;
 	u8 direction;
 	u8 red;
 	u8 green;
 	u8 blue;
-	/* Constant values sent by the vendor utility, meaning unknown */
 	u8 unknown[2];
-	u8 reserved2[6];
+	u8 reserved[6];
 } __packed;
 
 struct acer_kbd_effect_output {
@@ -3635,8 +3670,27 @@ struct acer_kbd_effect_output {
 #define ACER_KBD_RGB_GREEN_MASK		GENMASK(15, 8)
 #define ACER_KBD_RGB_BLUE_MASK		GENMASK(7, 0)
 
+/* Gaming LED bits that switch on all keyboard zones, for the alternative protocol */
+#define ACER_GAMING_LED_KBD_ON		BIT_ULL(3)
+#define ACER_GAMING_LED_KBD_ALL_ZONES	GENMASK_ULL(43, 40)
+
+/* A zone colour in the alternative protocol, with the brightness applied */
+struct acer_kbd_zone_colour {
+	u8 zone;
+	u8 red;
+	u8 green;
+	u8 blue;
+} __packed;
+
 /* Serialises keyboard lighting changes, which take several WMI calls */
 static DEFINE_MUTEX(acer_kbd_lock);
+
+static void acer_kbd_effect_init(struct acer_kbd_effect_input *effect)
+{
+	memset(effect, 0, sizeof(*effect));
+	effect->unknown[0] = quirks->four_zone_kbd_alt ? 0 : 3;
+	effect->unknown[1] = 1;
+}
 
 static int acer_kbd_set_effect(const struct acer_kbd_effect_input *effect)
 {
@@ -3710,9 +3764,7 @@ static ssize_t four_zone_mode_store(struct device *dev,
 				    struct device_attribute *attr,
 				    const char *buf, size_t count)
 {
-	struct acer_kbd_effect_input effect = {
-		.unknown = { 3, 1 },
-	};
+	struct acer_kbd_effect_input effect;
 	unsigned int mode, speed, brightness, direction, red, green, blue;
 	int err;
 
@@ -3728,8 +3780,13 @@ static ssize_t four_zone_mode_store(struct device *dev,
 
 	switch (mode) {
 	case ACER_KBD_EFFECT_STATIC:
-	case ACER_KBD_EFFECT_BREATHING:
 		speed = 0;
+		direction = 0;
+		break;
+	case ACER_KBD_EFFECT_BREATHING:
+		/* The alternative protocol honours the breathing speed */
+		if (!quirks->four_zone_kbd_alt)
+			speed = 0;
 		direction = 0;
 		break;
 	case ACER_KBD_EFFECT_NEON:
@@ -3754,10 +3811,13 @@ static ssize_t four_zone_mode_store(struct device *dev,
 		break;
 	}
 
+	acer_kbd_effect_init(&effect);
 	effect.mode = mode;
 	effect.speed = speed;
 	effect.brightness = brightness;
 	effect.direction = direction;
+	if (quirks->four_zone_kbd_alt && mode == ACER_KBD_EFFECT_WAVE)
+		effect.wave_flag = ACER_KBD_EFFECT_ALT_WAVE_FLAG;
 	effect.red = red;
 	effect.green = green;
 	effect.blue = blue;
@@ -3807,6 +3867,53 @@ static ssize_t per_zone_mode_show(struct device *dev,
 			  rgb[3], effect.brightness);
 }
 
+/* Sets the zone colours with the alternative protocol */
+static int acer_kbd_set_zones_alt(const u32 *rgb, unsigned int brightness)
+{
+	struct acer_kbd_effect_input effect;
+	struct acer_kbd_zone_colour colour;
+	struct acpi_buffer input = { sizeof(colour), &colour };
+	acpi_status status;
+	u64 result;
+	int i;
+
+	lockdep_assert_held(&acer_kbd_lock);
+
+	/* The fix queries the system information first; why is not known */
+	status = WMI_gaming_execute_u64(ACER_WMID_GET_GAMING_SYS_INFO_METHODID, 0,
+					&result);
+	if (ACPI_FAILURE(status))
+		return -EIO;
+
+	status = WMI_gaming_execute_u64(ACER_WMID_SET_GAMING_LED_METHODID,
+					ACER_GAMING_LED_KBD_ON |
+					ACER_GAMING_LED_KBD_ALL_ZONES, NULL);
+	if (ACPI_FAILURE(status))
+		return -EIO;
+
+	for (i = 0; i < ACER_KBD_ZONES; i++) {
+		colour.zone = acer_kbd_zone_ids[i];
+		colour.red = FIELD_GET(ACER_KBD_RGB_RED_MASK, rgb[i]) * brightness /
+			     ACER_KBD_BRIGHTNESS_MAX;
+		colour.green = FIELD_GET(ACER_KBD_RGB_GREEN_MASK, rgb[i]) * brightness /
+			       ACER_KBD_BRIGHTNESS_MAX;
+		colour.blue = FIELD_GET(ACER_KBD_RGB_BLUE_MASK, rgb[i]) * brightness /
+			      ACER_KBD_BRIGHTNESS_MAX;
+
+		status = wmi_evaluate_method(WMID_GUID4, 0,
+					     ACER_WMID_SET_GAMING_RGB_KB_METHODID,
+					     &input, NULL);
+		if (ACPI_FAILURE(status))
+			return -EIO;
+	}
+
+	acer_kbd_effect_init(&effect);
+	effect.mode = ACER_KBD_EFFECT_STATIC;
+	effect.brightness = brightness;
+
+	return acer_kbd_set_effect(&effect);
+}
+
 /*
  * Takes "RRGGBB,RRGGBB,RRGGBB,RRGGBB,brightness", the colours of the four
  * zones from left to right in hexadecimal.
@@ -3815,10 +3922,7 @@ static ssize_t per_zone_mode_store(struct device *dev,
 				   struct device_attribute *attr,
 				   const char *buf, size_t count)
 {
-	struct acer_kbd_effect_input effect = {
-		.mode = ACER_KBD_EFFECT_STATIC,
-		.unknown = { 3, 1 },
-	};
+	struct acer_kbd_effect_input effect;
 	u32 rgb[ACER_KBD_ZONES];
 	unsigned int brightness;
 	acpi_status status;
@@ -3837,9 +3941,16 @@ static ssize_t per_zone_mode_store(struct device *dev,
 			return -EINVAL;
 	}
 
-	effect.brightness = brightness;
-
 	guard(mutex)(&acer_kbd_lock);
+
+	if (quirks->four_zone_kbd_alt) {
+		err = acer_kbd_set_zones_alt(rgb, brightness);
+		return err ?: count;
+	}
+
+	acer_kbd_effect_init(&effect);
+	effect.mode = ACER_KBD_EFFECT_STATIC;
+	effect.brightness = brightness;
 
 	err = acer_kbd_set_effect(&effect);
 	if (err)
