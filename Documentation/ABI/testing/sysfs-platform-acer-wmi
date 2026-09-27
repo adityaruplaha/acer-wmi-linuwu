@@ -1,0 +1,106 @@
+What:		/sys/devices/platform/acer-wmi/nitro_sense/
+What:		/sys/devices/platform/acer-wmi/predator_sense/
+Date:		September 2026
+KernelVersion:	out of tree
+Description:
+		Settings offered by Acer's NitroSense or PredatorSense utility.
+		Nitro laptops get the nitro_sense group and Predator laptops the
+		predator_sense group, with the same attributes. Each attribute is
+		present only on models known to support it. The layout follows
+		Linuwu-Sense, so that tools written for it keep working.
+
+What:		/sys/devices/platform/acer-wmi/{nitro,predator}_sense/fan_speed
+Date:		September 2026
+KernelVersion:	out of tree
+Description:
+		(RW) CPU and GPU fan speeds as percentages, written and read as
+		"cpu,gpu". A speed of 0 returns that fan to automatic control,
+		and "100,100" selects the firmware's maximum fan mode. Reads
+		return the last values written, since not every model can
+		report them. Where the hwmon pwm attributes are available, they
+		control the same fans.
+
+What:		/sys/devices/platform/acer-wmi/{nitro,predator}_sense/battery_limiter
+Date:		September 2026
+KernelVersion:	out of tree
+Description:
+		(RW) Limits battery charging to 80% when set to 1.
+
+What:		/sys/devices/platform/acer-wmi/{nitro,predator}_sense/battery_calibration
+Date:		September 2026
+KernelVersion:	out of tree
+Description:
+		(RW) Starts battery calibration when set to 1, and stops it
+		when set to 0. Calibration charges the battery to 100%, drains
+		it to 0% and charges it again, to recalibrate the fuel gauge.
+		The laptop must stay on AC power throughout.
+
+What:		/sys/devices/platform/acer-wmi/{nitro,predator}_sense/usb_charging
+Date:		September 2026
+KernelVersion:	out of tree
+Description:
+		(RW) Charging of USB devices while the laptop is off. One of:
+
+		==  ==============================================
+		0   disabled
+		10  enabled until the battery drops below 10%
+		20  enabled until the battery drops below 20%
+		30  enabled until the battery drops below 30%
+		==  ==============================================
+
+What:		/sys/devices/platform/acer-wmi/{nitro,predator}_sense/backlight_timeout
+Date:		September 2026
+KernelVersion:	out of tree
+Description:
+		(RW) Turns the keyboard backlight off after 30 seconds without
+		input when set to 1.
+
+What:		/sys/devices/platform/acer-wmi/{nitro,predator}_sense/lcd_override
+Date:		September 2026
+KernelVersion:	out of tree
+Description:
+		(RW) LCD overdrive, which reduces the panel's response time,
+		when set to 1.
+
+What:		/sys/devices/platform/acer-wmi/{nitro,predator}_sense/boot_animation_sound
+Date:		September 2026
+KernelVersion:	out of tree
+Description:
+		(RW) The firmware's boot animation and sound, when set to 1.
+
+What:		/sys/devices/platform/acer-wmi/{nitro,predator}_sense/version
+Date:		September 2026
+KernelVersion:	out of tree
+Description:
+		(RO) Version of this driver package. Read by DAMX.
+
+What:		/sys/devices/platform/acer-wmi/four_zoned_kb/four_zone_mode
+Date:		September 2026
+KernelVersion:	out of tree
+Description:
+		(RW) Lighting effect of a four-zone RGB keyboard, as
+		"mode,speed,brightness,direction,red,green,blue".
+
+		==========  =================================================
+		mode        0 static, 1 breathing, 2 neon, 3 wave,
+		            4 shifting, 5 zoom, 6 meteor, 7 twinkling
+		speed       0 to 9
+		brightness  0 to 100
+		direction   1 right to left, 2 left to right; required by
+		            wave and shifting, ignored by other effects
+		red, green,
+		blue        0 to 255
+		==========  =================================================
+
+		Values the chosen effect does not use are cleared: speed and
+		direction for static and breathing, colour and direction for
+		neon, colour for wave, and direction for zoom, meteor and
+		twinkling.
+
+What:		/sys/devices/platform/acer-wmi/four_zoned_kb/per_zone_mode
+Date:		September 2026
+KernelVersion:	out of tree
+Description:
+		(RW) Static colour of each zone of a four-zone RGB keyboard,
+		as "RRGGBB,RRGGBB,RRGGBB,RRGGBB,brightness", zones from left
+		to right in hexadecimal and brightness from 0 to 100.
