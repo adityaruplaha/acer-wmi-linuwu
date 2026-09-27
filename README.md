@@ -1,10 +1,21 @@
 # acer-wmi with Linuwu-Sense extensions
 
-A drop-in replacement for the kernel's `acer-wmi` driver, packaged for DKMS. It is the upstream driver from the platform-drivers-x86 `for-next` branch, extended with the NitroSense and PredatorSense settings reverse engineered by [Linuwu-Sense](https://github.com/0x7375646F/Linuwu-Sense) and [Div-Linuwu-Sense](https://github.com/PXDiv/Div-Linuwu-Sense), rewritten to follow the kernel's coding conventions.
+A drop-in replacement for the kernel's [`acer-wmi`](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/platform/x86/acer-wmi.c) driver, packaged for [DKMS](https://github.com/dell/dkms). It is the kernel's driver as it stands on the [`for-next` branch](https://git.kernel.org/pub/scm/linux/kernel/git/pdx86/platform-drivers-x86.git/log/?h=for-next) of the platform-drivers-x86 tree, extended with the NitroSense and PredatorSense settings reverse engineered by [Linuwu-Sense](https://github.com/0x7375646F/Linuwu-Sense) and its fork [Div-Linuwu-Sense](https://github.com/PXDiv/Div-Linuwu-Sense), and rewritten to follow the [kernel's coding style](https://docs.kernel.org/process/coding-style.html). NitroSense and PredatorSense are Acer's Windows utilities for its Nitro and Predator gaming laptops; the settings here are the ones those utilities expose, reached through the same firmware ([WMI](https://docs.kernel.org/wmi/index.html)) methods.
 
-The module is built under the same name as the in-tree driver, `acer_wmi`, and DKMS installs it where it takes precedence over the in-tree copy. Nothing needs blacklisting, and everything the upstream driver does (hotkeys, rfkill, platform profiles, hwmon sensors and fan control) keeps working as before.
+Throughout this README, **"upstream" means the kernel's own `acer-wmi` driver**, never Linuwu-Sense, which is a separate out-of-tree module.
 
-> **Use at your own risk.** The NitroSense and PredatorSense settings drive undocumented firmware methods, found by reverse engineering Acer's Windows utilities. What is known to work on each model comes from its owners' reports against Linuwu-Sense and its forks, cited in the table below. This rewrite has been build-tested against kernels 7.2 and 6.18, and tested on hardware only on a Nitro AN515-57 (BIOS V1.14), where the platform profiles, hwmon, rfkill and every NitroSense setting work apart from `lcd_override`. Battery calibration was not exercised.
+Several similar names refer to different things:
+
+| Name | What it is |
+|---|---|
+| `acer-wmi-linuwu` | this package, as DKMS knows it, and this repository |
+| `acer_wmi` | the kernel module, whether this one or the in-tree one; the file is `acer-wmi.ko` |
+| `acer-wmi` | the platform device the module creates, whose settings are under `/sys/devices/platform/acer-wmi/` |
+| `linuwu_sense` | the module Linuwu-Sense and Div-Linuwu-Sense build, which this package replaces |
+
+The module is built under the same name as the in-tree driver, `acer_wmi`, and DKMS installs it where it takes precedence over the in-tree copy. Nothing needs blacklisting, and everything the upstream driver does (hotkeys, [rfkill](https://docs.kernel.org/driver-api/rfkill.html), [platform profiles](https://docs.kernel.org/userspace-api/sysfs-platform_profile.html), [hwmon](https://docs.kernel.org/hwmon/sysfs-interface.html) sensors and fan control) keeps working as before.
+
+> **Use at your own risk.** The NitroSense and PredatorSense settings drive undocumented firmware methods, found by reverse engineering Acer's Windows utilities. What is known to work on each model comes from its owners' reports against Linuwu-Sense and its forks, cited in the [table below](#supported-models). This rewrite has been build-tested against kernels 7.2 and 6.18, and tested on hardware only on a Nitro AN515-57 (BIOS V1.14), where the platform profiles, hwmon, rfkill and every NitroSense setting work apart from `lcd_override`. Battery calibration was not exercised.
 
 ## What it adds to the upstream driver
 
@@ -17,9 +28,11 @@ The module is built under the same name as the in-tree driver, `acer_wmi`, and D
 | `battery_calibration` | `1` starts calibration, `0` stops it; keep the laptop on AC throughout |
 | `usb_charging` | power-off USB charging until the battery drops to `10`, `20` or `30`%, or `0` for off |
 | `backlight_timeout` | `1` turns the keyboard backlight off after 30 seconds idle |
-| `lcd_override` | `1` enables LCD overdrive (Predator, and Nitro models listed as v4) |
-| `boot_animation_sound` | `1` enables the boot animation and sound (Predator, and Nitro v4) |
-| `version` | the version of this package, read by DAMX |
+| `lcd_override` | `1` enables LCD overdrive (Predator, and the Nitro models listed as [NitroSense v4](#supported-models)) |
+| `boot_animation_sound` | `1` enables the boot animation and sound (Predator, and NitroSense v4) |
+| `version` | the version of this package, such as `7.3.0.1` (see [Layout](#layout)), read by [DAMX](#damx) |
+
+A model has one of the two directories, not both: `predator_sense` on Predators, `nitro_sense` on Nitros.
 
 **Four-zone RGB keyboards**, in `/sys/devices/platform/acer-wmi/four_zoned_kb/`:
 
@@ -28,11 +41,10 @@ The module is built under the same name as the in-tree driver, `acer_wmi`, and D
 | `four_zone_mode` | `mode,speed,brightness,direction,red,green,blue`, where mode is 0 static, 1 breathing, 2 neon, 3 wave, 4 shifting, 5 zoom, 6 meteor or 7 twinkling, and direction is 1 right to left or 2 left to right |
 | `per_zone_mode` | `RRGGBB,RRGGBB,RRGGBB,RRGGBB,brightness`, zones from left to right |
 
-Per-key RGB keyboards are not supported. The full description of every attribute is in [`Documentation/ABI/testing/sysfs-platform-acer-wmi`](Documentation/ABI/testing/sysfs-platform-acer-wmi).
+Per-key RGB keyboards are not supported. The full description of every attribute, in the kernel's [ABI documentation format](https://docs.kernel.org/admin-guide/abi.html), is in [`Documentation/ABI/testing/sysfs-platform-acer-wmi`](Documentation/ABI/testing/sysfs-platform-acer-wmi).
+**The NitroSense key.** On Nitro laptops the NitroSense key, the one that opens NitroSense on Windows, now cycles the platform profile, as the upstream driver already has the PredatorSense key do on Predator laptops. This is separate from the turbo key that some Predators have alongside it, which the upstream driver handles and which the "Turbo key" column in the [table below](#supported-models) refers to.
 
-**The Nitro mode key.** On Nitro laptops the NitroSense key cycles the platform profile, as it does on Predator laptops.
-
-**More models.** See the table below.
+**More models.** See the [table below](#supported-models).
 
 For example:
 
@@ -42,7 +54,7 @@ echo 1 | sudo tee /sys/devices/platform/acer-wmi/nitro_sense/battery_limiter
 echo 4287f5,ff5733,33ff57,ff33a6,100 | sudo tee /sys/devices/platform/acer-wmi/four_zoned_kb/per_zone_mode
 ```
 
-The thermal profile is the kernel's standard platform profile interface, in `/sys/firmware/acpi/platform_profile` and `platform_profile_choices`, which power-profiles-daemon and desktop environments already use.
+The thermal profile is the kernel's standard [platform profile interface](https://docs.kernel.org/userspace-api/sysfs-platform_profile.html), in `/sys/firmware/acpi/platform_profile` and `platform_profile_choices`, which [power-profiles-daemon](https://gitlab.freedesktop.org/upower/power-profiles-daemon) and desktop environments already use.
 
 ## Supported models
 
@@ -80,14 +92,22 @@ The thermal profile is the kernel's standard platform profile interface, in `/sy
 | Predator PHN16S-71 | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | [LS#101](https://github.com/0x7375646F/Linuwu-Sense/issues/101), [DAMX#270](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/270) |
 | Aspire A315-58G | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | upstream |
 
-"NitroSense v4" means a Nitro whose firmware offers the full PredatorSense set of settings. The directory is still called `nitro_sense`.
+The columns:
 
-"Upstream" means the model is supported by the kernel's own driver, and the features added here come from the reports alongside it. For the PH315-52 only the turbo key has been reported working; it is given the PH315-53's settings as the closest model, which is untested. LS, DLS and DAMX are the issue trackers of [Linuwu-Sense](https://github.com/0x7375646F/Linuwu-Sense), [Div-Linuwu-Sense](https://github.com/PXDiv/Div-Linuwu-Sense) and [DAMX](https://github.com/PXDiv/Div-Acer-Manager-Max); the driver's DMI table cites the same reports.
+- **Platform profile**: thermal profiles through the kernel's [platform profile interface](https://docs.kernel.org/userspace-api/sysfs-platform_profile.html).
+- **Sensors**: temperatures and the CPU and GPU fan speeds, read through [hwmon](https://docs.kernel.org/hwmon/sysfs-interface.html).
+- **`fan_speed`**: fan control through this package's `fan_speed` attribute.
+- **hwmon pwm**: fan control through the upstream driver's hwmon `pwm` attributes, which is a separate mechanism from `fan_speed`.
+- **Turbo key**: the dedicated turbo button some Predators have, which toggles the fans' turbo mode and overclocking; not the NitroSense or PredatorSense key.
+- **Sense settings**: which set of [NitroSense and PredatorSense settings](#what-it-adds-to-the-upstream-driver) the model gets. "NitroSense v4" means a Nitro whose firmware offers the full PredatorSense set of settings; its directory is still called `nitro_sense`.
+- **Four-zone RGB**: the four-zone keyboard lighting controls.
+
+In the "Reported in" column, "upstream" means the model is supported by the kernel's own driver, and the features added here come from the reports alongside it. "Linuwu-Sense" without an issue number means the model is in [Linuwu-Sense's own model table](https://github.com/0x7375646F/Linuwu-Sense/blob/73a25ec243a44ba2b1703e8d0a76fa2735062506/src/linuwu_sense.c#L591-L957), with no separate report. For the PH315-52 only the turbo key has been reported working; it is given the PH315-53's settings as the closest model, which is untested. LS, DLS and DAMX are the issue trackers of [Linuwu-Sense](https://github.com/0x7375646F/Linuwu-Sense/issues), [Div-Linuwu-Sense](https://github.com/PXDiv/Div-Linuwu-Sense/issues) and [DAMX](https://github.com/PXDiv/Div-Acer-Manager-Max/issues); the driver's DMI table, `acer_quirks` in [`src/acer-wmi.c`](src/acer-wmi.c), cites the same reports.
 
 ### Known issues
 
 - **ANV15-51**: the firmware rejects the performance profile with an I/O error, although it is offered, as in the upstream driver ([patch](https://patchwork.kernel.org/project/platform-driver-x86/patch/20260920053918.1888-1-justinyvar@gmail.com/)).
-- **ANV15-51 and ANV15-52**: the NitroSense key is an ordinary keyboard scancode, `0xf5`, rather than a WMI event, so this driver never sees it. systemd's hwdb maps it to `prog1` on the ANV15-51 ([systemd#38415](https://github.com/systemd/systemd/pull/38415)); bind that key in userspace to cycle profiles ([LS#117](https://github.com/0x7375646F/Linuwu-Sense/issues/117)).
+- **ANV15-51 and ANV15-52**: the NitroSense key is an ordinary keyboard scancode, `0xf5`, rather than a WMI event, so this driver never sees it. systemd's [hwdb](https://www.freedesktop.org/software/systemd/man/latest/hwdb.html) maps it to `prog1` on the ANV15-51 ([systemd#38415](https://github.com/systemd/systemd/pull/38415)); bind that key in userspace to cycle profiles ([LS#117](https://github.com/0x7375646F/Linuwu-Sense/issues/117)).
 - **AN515-58**: on BIOS V2.18 the static keyboard effect turns the lights off, even with valid parameters ([LS#99](https://github.com/0x7375646F/Linuwu-Sense/issues/99)), and on BIOS V2.19 the battery limiter is accepted but has no effect ([DAMX#184](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/184)). Both are firmware behaviour.
 - **PHN16S-71**: the fans read 0 RPM and do not respond to control ([DAMX#270](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/270)), so only the platform profile and temperatures are enabled.
 - **PHN16S-71 and PHN18-72**: the keyboard lighting does not respond to the WMI methods ([LS#101](https://github.com/0x7375646F/Linuwu-Sense/issues/101), [DAMX#123](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/123)), so four-zone control is not enabled on them. Nor is it enabled on the PHN16-73 and ANV16S-41, for which no report says it works.
@@ -95,18 +115,20 @@ The thermal profile is the kernel's standard platform profile interface, in `/sy
 - **AN515-57**: writes to `lcd_override` are accepted but the value does not change, so the model may lack LCD overdrive; this is being investigated before the setting is removed for it.
 - **AN515-47**: LCD overdrive has no effect, so it gets the NitroSense settings without it ([DAMX#44](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/44)).
 
-A model not in the table can try the `nitro_v4=1` or `predator_v4=1` module parameter, which enables the corresponding set of features regardless of the model:
+A model not in the table can try the `nitro_v4=1` or `predator_v4=1` module parameter, which enables the NitroSense v4 or PredatorSense set of features respectively, regardless of the model:
 
 ```sh
 sudo modprobe -r acer_wmi
 sudo modprobe acer_wmi nitro_v4=1
 ```
 
-If that works, please open an issue with the output of `cat /sys/class/dmi/id/product_name` and which features work, so that the model can be added.
+If that works, please [open an issue](https://github.com/adityaruplaha/acer-wmi-linuwu/issues) here with the output of `cat /sys/class/dmi/id/product_name` and which features work, so that the model can be added.
 
 ## Installation
 
-Install the headers for every kernel you use and DKMS. On Arch Linux:
+The kernel must be 6.14 or newer.
+
+Install [DKMS](https://github.com/dell/dkms) and the headers for every kernel you use. On Arch Linux ([wiki](https://wiki.archlinux.org/title/Dynamic_Kernel_Module_Support)):
 
 ```sh
 sudo pacman -S --needed dkms linux-headers
@@ -119,7 +141,7 @@ sudo dkms add .
 sudo dkms install acer-wmi-linuwu/7.3.0.1
 ```
 
-`dkms add` copies the repository to `/usr/src/acer-wmi-linuwu-7.3.0.1`, and `dkms install` builds and installs it for the running kernel; add `-k <version>` to install it for another installed kernel. DKMS then builds it automatically for every new kernel. After pulling a new version, remove the old one as described below and add the new one.
+`dkms add` copies the repository to `/usr/src/acer-wmi-linuwu-7.3.0.1`, and `dkms install` builds and installs it for the running kernel; add `-k <version>` to install it for another installed kernel. DKMS then builds it automatically for every new kernel. After pulling a new version, remove the old one as [described below](#uninstalling) and add the new one.
 
 To load it without rebooting:
 
@@ -128,27 +150,27 @@ sudo modprobe -r acer_wmi
 sudo modprobe acer_wmi
 ```
 
-Check that the new module is the one in use; the path should be under `updates/dkms`:
+Check that this package's module is the one in use rather than the in-tree one; the path should be under `updates/dkms`:
 
 ```sh
 modinfo -n acer_wmi
 ```
 
-To uninstall, which returns the system to the in-tree driver:
+### Uninstalling
+
+This returns the system to the in-tree driver:
 
 ```sh
 sudo dkms remove acer-wmi-linuwu/7.3.0.1 --all
 ```
 
-The kernel must be 6.14 or newer.
-
 ### Secure Boot
 
-With Secure Boot enabled, the module must be signed with a key the firmware trusts. DKMS signs modules automatically once a machine owner key is set up; see the `mok_signing_key` and `mok_certificate` options in `/etc/dkms/framework.conf`, and enrol the certificate with `mokutil --import`.
+With [Secure Boot](https://wiki.archlinux.org/title/Unified_Extensible_Firmware_Interface/Secure_Boot) enabled, the module must be [signed](https://docs.kernel.org/admin-guide/module-signing.html) with a key the firmware trusts. DKMS signs modules automatically once a machine owner key (MOK) is set up; see the `mok_signing_key` and `mok_certificate` options in `/etc/dkms/framework.conf`, and enrol the certificate with `mokutil --import` ([mokutil](https://github.com/lcp/mokutil)).
 
 ### Migrating from Linuwu-Sense
 
-Linuwu-Sense blacklisted `acer_wmi` and loaded its own `linuwu_sense` module, which conflicts with this package. Remove it first, either with `make uninstall` from the Linuwu-Sense checkout or by hand:
+[Linuwu-Sense](https://github.com/0x7375646F/Linuwu-Sense) and [Div-Linuwu-Sense](https://github.com/PXDiv/Div-Linuwu-Sense) both blacklist `acer_wmi` and load their own `linuwu_sense` module in its place, which conflicts with this package. They install under the same names, so the steps are the same for either. Remove it first, either with `make uninstall` from its checkout or by hand:
 
 ```sh
 sudo rm /etc/modprobe.d/blacklist-acer_wmi.conf /etc/modules-load.d/linuwu_sense.conf
@@ -163,15 +185,17 @@ Linuwu-Sense also kept its settings in `/etc/predator_state` and `/etc/four_zone
 Two other behaviours of Linuwu-Sense are deliberately not carried over, since they are policy and belong in userspace:
 
 - remembering a separate profile and fan speed for AC and battery, and switching between them on plugging in or out;
-- refusing the performance and quiet profiles on battery, and resetting the fans when quiet or eco is selected.
+- refusing the performance and quiet profiles on battery, and resetting the fans when quiet or low-power (the firmware's "eco" mode) is selected.
 
-The platform profile offers all five profiles on every supported model, as the upstream driver does, since the firmware's own list of supported profiles is unreliable.
+The platform profile offers all five profiles, `low-power`, `quiet`, `balanced`, `balanced-performance` and `performance`, on every supported model, as the upstream driver does, since the firmware's own list of supported profiles is unreliable.
 
 ### DAMX
 
-[DAMX](https://github.com/PXDiv/Div-Acer-Manager-Max) looks for its settings under `/sys/module/linuwu_sense/drivers/platform:acer-wmi/acer-wmi/`, which exists only when the module is called `linuwu_sense`. With this driver the same directories are at `/sys/devices/platform/acer-wmi/`, and DAMX needs that path changed to find them. The attributes themselves are the same.
+[DAMX](https://github.com/PXDiv/Div-Acer-Manager-Max) (Div Acer Manager Max) is a graphical settings application for these laptops, by the author of Div-Linuwu-Sense. It looks for its settings under `/sys/module/linuwu_sense/drivers/platform:acer-wmi/acer-wmi/`, which exists only when the module is called `linuwu_sense`. With this driver the same directories are at `/sys/devices/platform/acer-wmi/`, and DAMX needs that path changed to find them. The attributes themselves are the same.
 
 ## Building without DKMS
+
+The `Makefile` wraps the kernel's [external module build](https://docs.kernel.org/kbuild/modules.html):
 
 ```sh
 make                        # for the running kernel
@@ -186,13 +210,13 @@ The module is `src/acer-wmi.ko`. Load it for testing with `sudo modprobe -r acer
 
 | Path | Contents |
 |---|---|
-| `src/acer-wmi.c` | the driver |
-| `src/Kbuild` | the kernel build rules |
-| `dkms.conf` | the DKMS package definition, which holds the version |
-| `Makefile` | convenience targets for building outside DKMS |
-| `Documentation/ABI/` | the sysfs interface, in the kernel's ABI format |
+| [`src/acer-wmi.c`](src/acer-wmi.c) | the driver |
+| [`src/Kbuild`](src/Kbuild) | the kernel build rules |
+| [`dkms.conf`](dkms.conf) | the DKMS package definition, which holds the version |
+| [`Makefile`](Makefile) | convenience targets for building outside DKMS |
+| [`Documentation/ABI/`](Documentation/ABI/) | the sysfs interface, in the kernel's [ABI format](https://docs.kernel.org/admin-guide/abi.html) |
 
-The version is the upstream kernel release the driver is based on, followed by a revision of this package. The driver currently tracks `drivers/platform/x86/acer-wmi.c` as of platform-drivers-x86 `for-next` commit [`3bd07ec2893b`](https://git.kernel.org/pub/scm/linux/kernel/git/pdx86/platform-drivers-x86.git/commit/?id=3bd07ec2893bef0220cd63589c19e5be354fe835) ("platform/x86: acer-wmi: enable hwmon on Aspire A315-58G"); `git diff --no-index` against that file shows everything this package adds.
+The version is the kernel release that the tracked upstream code is queued for, followed by a revision of this package: `7.3.0.1` is kernel 7.3.0, the release after 7.2 that `for-next` feeds, and revision 1. The driver currently tracks [`drivers/platform/x86/acer-wmi.c`](https://git.kernel.org/pub/scm/linux/kernel/git/pdx86/platform-drivers-x86.git/tree/drivers/platform/x86/acer-wmi.c?id=3bd07ec2893bef0220cd63589c19e5be354fe835) as of platform-drivers-x86 `for-next` commit [`3bd07ec2893b`](https://git.kernel.org/pub/scm/linux/kernel/git/pdx86/platform-drivers-x86.git/commit/?id=3bd07ec2893bef0220cd63589c19e5be354fe835) ("platform/x86: acer-wmi: enable hwmon on Aspire A315-58G"); `git diff --no-index` against that file shows everything this package adds.
 
 ## How this version was written
 
@@ -201,13 +225,13 @@ This version was written by Claude (Anthropic's Claude Opus 5.5, working in Clau
 - merged the Linuwu-Sense and Div-Linuwu-Sense features onto the current upstream `acer-wmi.c`, rewriting them in the kernel's style on top of the upstream driver's own WMI helpers, and decoding their magic numbers into named fields where the pattern was clear;
 - dropped what the kernel does not allow or leaves to userspace, such as writing state files to `/etc`;
 - gathered the model reports cited above and added the models they support;
-- wrote the DKMS packaging, this README and the ABI documentation, and checked the result with `checkpatch.pl --strict` and warning-free builds against kernels 7.2 and 6.18.
+- wrote the DKMS packaging, this README and the ABI documentation, and checked the result with `checkpatch.pl --strict` ([checkpatch](https://docs.kernel.org/dev-tools/checkpatch.html)) and warning-free builds against kernels 7.2 and 6.18.
 
 ## Credits
 
-- The upstream `acer-wmi` driver, by Carlos Corbacho and the kernel's platform-drivers-x86 maintainers and contributors.
+- The upstream [`acer-wmi`](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/platform/x86/acer-wmi.c) driver, by Carlos Corbacho and the maintainers and contributors of the kernel's [platform-drivers-x86](https://patchwork.kernel.org/project/platform-driver-x86/list/) subsystem.
 - [Linuwu-Sense](https://github.com/0x7375646F/Linuwu-Sense) by 0x7375646F, which reverse engineered the NitroSense and PredatorSense methods, and its contributors.
-- [Div-Linuwu-Sense](https://github.com/PXDiv/Div-Linuwu-Sense) by Div Sharp (PXDiv), the author of DAMX.
+- [Div-Linuwu-Sense](https://github.com/PXDiv/Div-Linuwu-Sense), the fork of Linuwu-Sense by Div Sharp (PXDiv), the author of [DAMX](https://github.com/PXDiv/Div-Acer-Manager-Max).
 - [acer-predator-turbo-and-rgb-keyboard-linux-module](https://github.com/JafarAkhondali/acer-predator-turbo-and-rgb-keyboard-linux-module), which inspired Linuwu-Sense.
 
 ## Licence
