@@ -485,6 +485,7 @@ struct quirk_entry {
 	enum acer_sense_type sense;
 	bool four_zone_kbd;
 	bool four_zone_kbd_alt;
+	bool four_zone_kbd_arm;
 };
 
 static struct quirk_entry *quirks;
@@ -648,7 +649,8 @@ static struct quirk_entry quirk_acer_nitro_v4_four_zone = {
 
 /*
  * PredatorSense v3 firmware: the PredatorSense settings work, but there is no
- * platform profile interface.
+ * platform profile interface. The keyboard zones stay dark until they are
+ * switched on.
  */
 static struct quirk_entry quirk_acer_predator_ph315_53 = {
 	.turbo = true,
@@ -657,6 +659,7 @@ static struct quirk_entry quirk_acer_predator_ph315_53 = {
 	.hwmon = true,
 	.sense = ACER_SENSE_PREDATOR,
 	.four_zone_kbd = true,
+	.four_zone_kbd_arm = true,
 };
 
 /* As the PH315-53, but with the platform profile interface */
@@ -1147,7 +1150,7 @@ static const struct dmi_system_id acer_quirks[] __initconst = {
 		.driver_data = &quirk_acer_predator_ph315_53,
 	},
 	{
-		/* PredatorSense settings and keyboard: LS#98, LS#121 */
+		/* PredatorSense settings and keyboard: LS#98, LS#121, LS#144 */
 		.callback = dmi_matched,
 		.ident = "Acer Predator PH315-53",
 		.matches = {
@@ -3679,6 +3682,9 @@ static const struct attribute_group predator_sense_group = {
  * four bytes with the brightness already applied, and the static effect
  * selected afterwards rather than before. Without it the static effect turns
  * the AN515-58's keyboard lights off.
+ *
+ * The PH315-53 needs the zones switched on the same way, but only once: its
+ * keyboard stays dark until then, and stays lit until the firmware resets.
  */
 enum acer_kbd_effect_mode {
 	ACER_KBD_EFFECT_STATIC		= 0,
@@ -3743,7 +3749,7 @@ struct acer_kbd_effect_output {
 #define ACER_KBD_RGB_GREEN_MASK		GENMASK(15, 8)
 #define ACER_KBD_RGB_BLUE_MASK		GENMASK(7, 0)
 
-/* Gaming LED bits that switch on all keyboard zones, for the alternative protocol */
+/* Gaming LED bits that switch on all keyboard zones */
 #define ACER_GAMING_LED_KBD_ON		BIT_ULL(3)
 #define ACER_GAMING_LED_KBD_ALL_ZONES	GENMASK_ULL(43, 40)
 
@@ -3940,17 +3946,11 @@ static ssize_t per_zone_mode_show(struct device *dev,
 			  rgb[3], effect.brightness);
 }
 
-/* Sets the zone colours with the alternative protocol */
-static int acer_kbd_set_zones_alt(const u32 *rgb, unsigned int brightness)
+/* Switches on all keyboard zones through the gaming LED method */
+static int acer_kbd_arm_zones(void)
 {
-	struct acer_kbd_effect_input effect;
-	struct acer_kbd_zone_colour colour;
-	struct acpi_buffer input = { sizeof(colour), &colour };
 	acpi_status status;
 	u64 result;
-	int i;
-
-	lockdep_assert_held(&acer_kbd_lock);
 
 	/* The fix queries the system information first; why is not known */
 	status = WMI_gaming_execute_u64(ACER_WMID_GET_GAMING_SYS_INFO_METHODID, 0,
@@ -3963,6 +3963,24 @@ static int acer_kbd_set_zones_alt(const u32 *rgb, unsigned int brightness)
 					ACER_GAMING_LED_KBD_ALL_ZONES, NULL);
 	if (ACPI_FAILURE(status))
 		return -EIO;
+
+	return 0;
+}
+
+/* Sets the zone colours with the alternative protocol */
+static int acer_kbd_set_zones_alt(const u32 *rgb, unsigned int brightness)
+{
+	struct acer_kbd_effect_input effect;
+	struct acer_kbd_zone_colour colour;
+	struct acpi_buffer input = { sizeof(colour), &colour };
+	acpi_status status;
+	int err, i;
+
+	lockdep_assert_held(&acer_kbd_lock);
+
+	err = acer_kbd_arm_zones();
+	if (err)
+		return err;
 
 	for (i = 0; i < ACER_KBD_ZONES; i++) {
 		colour.zone = acer_kbd_zone_ids[i];
@@ -4430,6 +4448,13 @@ static int acer_platform_probe(struct platform_device *device)
 		err = acer_wmi_hwmon_init();
 		if (err)
 			goto error_hwmon;
+	}
+
+	if (has_cap(ACER_CAP_FOUR_ZONE_KBD) && quirks->four_zone_kbd_arm) {
+		err = acer_kbd_arm_zones();
+		if (err)
+			dev_warn(&device->dev,
+				 "Failed to switch on the keyboard zones: %d\n", err);
 	}
 
 	return 0;

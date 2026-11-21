@@ -88,7 +88,7 @@ The thermal profile is the kernel's standard [platform profile interface](https:
 | Predator PHN16-71 | ✅ | ✅ | ✅ | ❌ | ❌ | PredatorSense | ✅ | upstream, Linuwu-Sense |
 | Predator PT316-51s | ✅ | ✅ | ✅ | ❌ | ❌ | PredatorSense | ✅ | [DLS#17](https://github.com/PXDiv/Div-Linuwu-Sense/issues/17) |
 | Predator PHN16-72 | ✅ | ✅ | ✅ | ✅ | ✅ | PredatorSense | ✅ | upstream, Linuwu-Sense |
-| Predator PH315-53 | ❌ | ✅ | ✅ | ❌ | ✅ | PredatorSense | ✅ | upstream, [LS#98](https://github.com/0x7375646F/Linuwu-Sense/issues/98), [LS#121](https://github.com/0x7375646F/Linuwu-Sense/issues/121) |
+| Predator PH315-53 | ❌ | ✅ | ✅ | ❌ | ✅ | PredatorSense | ✅ | upstream, [LS#98](https://github.com/0x7375646F/Linuwu-Sense/issues/98), [LS#121](https://github.com/0x7375646F/Linuwu-Sense/issues/121), keyboard: [LS#144](https://github.com/0x7375646F/Linuwu-Sense/issues/144) |
 | Predator PH315-52 | ❌ | ✅ | ✅ | ❌ | ✅ | PredatorSense | ✅ | [LS#119](https://github.com/0x7375646F/Linuwu-Sense/issues/119), turbo key only |
 | Predator PH315-54 | ✅ | ✅ | ✅ | ❌ | ✅ | PredatorSense | ✅ | [LS#55](https://github.com/0x7375646F/Linuwu-Sense/issues/55), untested |
 | Predator PH16-72, PT14-51 | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | upstream |
