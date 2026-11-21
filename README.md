@@ -25,7 +25,7 @@ The module is built under the same name as the in-tree driver, `acer_wmi`, and D
 |---|---|
 | `fan_speed` | CPU and GPU fan speed as percentages, `cpu,gpu`; `0` is automatic, `100,100` is maximum |
 | `battery_limiter` | `1` limits charging to 80% |
-| `battery_calibration` | `1` starts calibration, `0` stops it; keep the laptop on AC throughout |
+| `battery_calibration` | `1` starts calibration, `0` stops it; keep the laptop on AC throughout. Starting it also switches `battery_limiter` off, as the AN515-57's firmware shows |
 | `usb_charging` | power-off USB charging until the battery drops to `10`, `20` or `30`%, or `0` for off |
 | `backlight_timeout` | `1` turns the keyboard backlight off after 30 seconds idle |
 | `lcd_overdrive` | `1` enables LCD overdrive (Predator, and the Nitro models listed as [NitroSense v4](#supported-models), where the firmware reports support); `lcd_override`, its name in Linuwu-Sense, is a deprecated alias |
