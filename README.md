@@ -192,7 +192,7 @@ Two other behaviours of Linuwu-Sense are deliberately not carried over, since th
 - remembering a separate profile and fan speed for AC and battery, and switching between them on plugging in or out;
 - refusing the performance and quiet profiles on battery, and resetting the fans when quiet or low-power (the firmware's "eco" mode) is selected.
 
-The platform profile offers all five profiles, `low-power`, `quiet`, `balanced`, `balanced-performance` and `performance`, on every supported model, as the upstream driver does, since the firmware's own list of supported profiles is unreliable.
+The platform profile offers the profiles the firmware lists as supported. If that list cannot be read or names none of them, it offers all five, `low-power`, `quiet`, `balanced`, `balanced-performance` and `performance`, which the upstream driver always does because the list is invalid on some models.
 
 ### DAMX
 

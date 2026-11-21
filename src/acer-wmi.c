@@ -2757,14 +2757,39 @@ acer_predator_v4_platform_profile_set(struct device *dev,
 	return 0;
 }
 
+static const struct {
+	u8 tp;
+	enum platform_profile_option profile;
+} acer_predator_v4_profiles[] = {
+	{ ACER_PREDATOR_V4_THERMAL_PROFILE_TURBO, PLATFORM_PROFILE_PERFORMANCE },
+	{ ACER_PREDATOR_V4_THERMAL_PROFILE_PERFORMANCE, PLATFORM_PROFILE_BALANCED_PERFORMANCE },
+	{ ACER_PREDATOR_V4_THERMAL_PROFILE_BALANCED, PLATFORM_PROFILE_BALANCED },
+	{ ACER_PREDATOR_V4_THERMAL_PROFILE_QUIET, PLATFORM_PROFILE_QUIET },
+	{ ACER_PREDATOR_V4_THERMAL_PROFILE_ECO, PLATFORM_PROFILE_LOW_POWER },
+};
+
 static int
 acer_predator_v4_platform_profile_probe(void *drvdata, unsigned long *choices)
 {
-	set_bit(PLATFORM_PROFILE_PERFORMANCE, choices);
-	set_bit(PLATFORM_PROFILE_BALANCED_PERFORMANCE, choices);
-	set_bit(PLATFORM_PROFILE_BALANCED, choices);
-	set_bit(PLATFORM_PROFILE_QUIET, choices);
-	set_bit(PLATFORM_PROFILE_LOW_POWER, choices);
+	u8 known = 0, supported;
+	int err, i;
+
+	for (i = 0; i < ARRAY_SIZE(acer_predator_v4_profiles); i++)
+		known |= BIT(acer_predator_v4_profiles[i].tp);
+
+	/*
+	 * The firmware reports the profiles it supports as a bitmap of their
+	 * values. Offer every profile if it cannot be read or names none.
+	 */
+	err = WMID_gaming_get_misc_setting(ACER_WMID_MISC_SETTING_SUPPORTED_PROFILES,
+					   &supported);
+	if (err || !(supported & known))
+		supported = known;
+
+	for (i = 0; i < ARRAY_SIZE(acer_predator_v4_profiles); i++) {
+		if (supported & BIT(acer_predator_v4_profiles[i].tp))
+			set_bit(acer_predator_v4_profiles[i].profile, choices);
+	}
 
 	/* Set default non-turbo profile */
 	last_non_turbo_profile = ACER_PREDATOR_V4_THERMAL_PROFILE_BALANCED;
