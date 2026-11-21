@@ -31,6 +31,7 @@ The module is built under the same name as the in-tree driver, `acer_wmi`, and D
 | `lcd_overdrive` | `1` enables LCD overdrive (Predator, and the Nitro models listed as [NitroSense v4](#supported-models), where the firmware reports support); `lcd_override`, its name in Linuwu-Sense, is a deprecated alias |
 | `boot_animation_sound` | `1` enables the boot animation and sound (Predator, and NitroSense v4) |
 | `cool_boost` | `1` enables CoolBoost, which temporarily raises the fan speed (AN515-57, tested on BIOS V1.22) |
+| `win_key_lock` | `1` disables the Windows and menu keys (AN515-57, tested on BIOS V1.22) |
 | `version` | the version of this package, such as `7.3.0.1` (see [Layout](#layout)), read by [DAMX](#damx) |
 
 A model has one of the two directories, not both: `predator_sense` on Predators, `nitro_sense` on Nitros.

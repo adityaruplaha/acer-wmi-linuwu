@@ -84,6 +84,14 @@ Description:
 		speed, when set to 1. Present only on models known to have
 		it, and only when the firmware reports support for it.
 
+What:		/sys/devices/platform/acer-wmi/{nitro,predator}_sense/win_key_lock
+Date:		November 2026
+KernelVersion:	out of tree
+Description:
+		(RW) Disables the Windows and menu keys when set to 1. Present
+		only on models known to have it, and only when the firmware
+		reports support for it.
+
 What:		/sys/devices/platform/acer-wmi/{nitro,predator}_sense/version
 Date:		September 2026
 KernelVersion:	out of tree

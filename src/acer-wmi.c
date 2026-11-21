@@ -355,6 +355,7 @@ struct hotkey_function_type_aa {
 #define ACER_CAP_BOOT_ANIMATION_SOUND	BIT(18)
 #define ACER_CAP_FOUR_ZONE_KBD		BIT(19)
 #define ACER_CAP_COOL_BOOST		BIT(20)
+#define ACER_CAP_WIN_KEY_LOCK		BIT(21)
 
 /* Settings offered by NitroSense, and the superset offered by PredatorSense */
 #define ACER_CAP_NITRO_SENSE		(ACER_CAP_FAN_SPEED | \
@@ -488,6 +489,7 @@ struct quirk_entry {
 	bool four_zone_kbd_alt;
 	bool four_zone_kbd_arm;
 	bool cool_boost;
+	bool win_key_lock;
 };
 
 static struct quirk_entry *quirks;
@@ -530,6 +532,9 @@ static void __init set_quirks(void)
 
 	if (quirks->cool_boost)
 		interface->capability |= ACER_CAP_COOL_BOOST;
+
+	if (quirks->win_key_lock)
+		interface->capability |= ACER_CAP_WIN_KEY_LOCK;
 }
 
 static int __init dmi_matched(const struct dmi_system_id *dmi)
@@ -659,6 +664,7 @@ static struct quirk_entry quirk_acer_nitro_an515_57 = {
 	.four_zone_kbd = true,
 	.four_zone_kbd_arm = true,
 	.cool_boost = true,
+	.win_key_lock = true,
 };
 
 /*
@@ -3545,6 +3551,67 @@ static struct device_attribute dev_attr_lcd_override =
 	__ATTR(lcd_override, 0644, lcd_overdrive_show, lcd_overdrive_store);
 
 /*
+ * Windows key lock. Byte 3 of GetGamingProfile(0) is 1 while the Windows and
+ * menu keys work and 0 while they are locked, and selector 0x02 sets it.
+ */
+#define ACER_GAMING_PROFILE_WIN_KEY		0x02
+#define ACER_GAMING_PROFILE_WIN_KEY_MASK	GENMASK_ULL(31, 24)
+#define ACER_GAMING_PROFILE_UNSUPPORTED		0xff
+
+static bool acer_win_key_lock_supported(void)
+{
+	u64 result;
+
+	if (acer_get_gaming_profile(&result))
+		return false;
+
+	return FIELD_GET(ACER_GAMING_PROFILE_WIN_KEY_MASK, result) !=
+	       ACER_GAMING_PROFILE_UNSUPPORTED;
+}
+
+static ssize_t win_key_lock_show(struct device *dev,
+				 struct device_attribute *attr, char *buf)
+{
+	u64 result;
+	int err;
+
+	err = acer_get_gaming_profile(&result);
+	if (err)
+		return err;
+
+	return sysfs_emit(buf, "%d\n",
+			  !FIELD_GET(ACER_GAMING_PROFILE_WIN_KEY_MASK, result));
+}
+
+static ssize_t win_key_lock_store(struct device *dev,
+				  struct device_attribute *attr,
+				  const char *buf, size_t count)
+{
+	u64 input = ACER_GAMING_PROFILE_WIN_KEY;
+	acpi_status status;
+	bool lock;
+	u64 result;
+	int err;
+
+	err = kstrtobool(buf, &lock);
+	if (err)
+		return err;
+
+	input |= FIELD_PREP(ACER_GAMING_PROFILE_WIN_KEY_MASK, !lock);
+
+	status = WMI_gaming_execute_u64(ACER_WMID_SET_GAMING_PROFILE_METHODID, input,
+					&result);
+	if (ACPI_FAILURE(status))
+		return -EIO;
+
+	if (FIELD_GET(ACER_GAMING_PROFILE_STATUS_MASK, result))
+		return -EIO;
+
+	return count;
+}
+static DEVICE_ATTR_RW(win_key_lock);
+
+/*
  * Boot animation and sound
  */
 static ssize_t boot_animation_sound_show(struct device *dev,
@@ -3733,6 +3800,7 @@ static struct attribute *acer_sense_attrs[] = {
 	&dev_attr_lcd_override.attr,
 	&dev_attr_boot_animation_sound.attr,
 	&dev_attr_cool_boost.attr,
+	&dev_attr_win_key_lock.attr,
 	&dev_attr_version.attr,
 	NULL
 };
@@ -3758,6 +3826,8 @@ static umode_t acer_sense_attr_visible(struct kobject *kobj,
 		cap = ACER_CAP_BOOT_ANIMATION_SOUND;
 	else if (attr == &dev_attr_cool_boost.attr)
 		cap = ACER_CAP_COOL_BOOST;
+	else if (attr == &dev_attr_win_key_lock.attr)
+		cap = ACER_CAP_WIN_KEY_LOCK;
 	else
 		return attr->mode;
 
@@ -4597,6 +4667,11 @@ static int acer_platform_probe(struct platform_device *device)
 			dev_info(&device->dev, "CoolBoost is not supported by the firmware\n");
 			interface->capability &= ~ACER_CAP_COOL_BOOST;
 		}
+	}
+
+	if (has_cap(ACER_CAP_WIN_KEY_LOCK) && !acer_win_key_lock_supported()) {
+		dev_info(&device->dev, "Windows key lock is not supported by the firmware\n");
+		interface->capability &= ~ACER_CAP_WIN_KEY_LOCK;
 	}
 
 	if (has_cap(ACER_CAP_FOUR_ZONE_KBD) && quirks->four_zone_kbd_arm) {
