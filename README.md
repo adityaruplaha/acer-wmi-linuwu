@@ -61,6 +61,8 @@ The thermal profile is the kernel's standard [platform profile interface](https:
 | Model | Platform profile | Sensors | `fan_speed` | hwmon pwm | Turbo key | Sense settings | Four-zone RGB | Reported in |
 |---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|---|
 | Nitro AN515-55 | ❌ | ✅ | ✅ | ❌ | ❌ | NitroSense | ✅ | [LS#40](https://github.com/0x7375646F/Linuwu-Sense/issues/40), keyboard: [BillyAddlers' fork](https://github.com/BillyAddlers/Linuwu-Sense-AN515-55-Patch) |
+| Nitro AN515-44 | ❌ | ✅ | ✅ | ❌ | ❌ | NitroSense | ✅ | [DAMX compatibility list](https://github.com/PXDiv/Div-Acer-Manager-Max/blob/main/Compatibility.md), [LS#146](https://github.com/0x7375646F/Linuwu-Sense/issues/146) |
+| Nitro AN515-45 | ❌ | ✅ | ✅ | ❌ | ❌ | NitroSense | ✅ | [LS#92](https://github.com/0x7375646F/Linuwu-Sense/issues/92), [DLS#12](https://github.com/PXDiv/Div-Linuwu-Sense/issues/12), [LS#139](https://github.com/0x7375646F/Linuwu-Sense/issues/139) |
 | Nitro AN515-47 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense | ❌ | [DAMX#44](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/44) |
 | Nitro ANV15-41 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense | ❌ | Linuwu-Sense |
 | Nitro ANV15-51 | ✅ | ✅ | ✅ | ✅ | ❌ | NitroSense | ❌ | Linuwu-Sense, upstream [patch](https://patchwork.kernel.org/project/platform-driver-x86/patch/20260920053918.1888-1-justinyvar@gmail.com/) |
@@ -68,19 +70,19 @@ The thermal profile is the kernel's standard [platform profile interface](https:
 | Nitro AN17-41, AN17-42 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense | ✅ | [DAMX#99](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/99), [DAMX#64](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/64) |
 | Nitro AN515-46 | ✅ | ✅ | ✅ | ✅ | ❌ | NitroSense | ✅ | [DLS#4](https://github.com/PXDiv/Div-Linuwu-Sense/issues/4) |
 | Nitro AN515-58 | ✅ | ✅ | ✅ | ✅ | ❌ | NitroSense | ✅ | upstream, Linuwu-Sense, keyboard: [fabiannabil1's fix](https://github.com/fabiannabil1/Linuwu-AN515-58-Linuwu-Sense-Fix) |
-| Nitro AN515-44 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense v4 | ❌ | [DAMX compatibility list](https://github.com/PXDiv/Div-Acer-Manager-Max/blob/main/Compatibility.md) |
 | Nitro AN515-57 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense v4 | ❌ | [notalhanz/Linuwu-Sense](https://github.com/notalhanz/Linuwu-Sense/commit/c63f98e0a445a9387fc28c569df71f719edb1a8f) |
+| Nitro AN515-54 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense v4 | ❌ | [LS#34](https://github.com/0x7375646F/Linuwu-Sense/issues/34) |
 | Nitro ANV16-41 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense v4 | ❌ | [LS#37](https://github.com/0x7375646F/Linuwu-Sense/issues/37) |
 | Nitro ANV16-42 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense v4 | ❌ | [DAMX#174](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/174) |
 | Nitro ANV16-71 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense v4 | ❌ | [LS#64](https://github.com/0x7375646F/Linuwu-Sense/issues/64), [DAMX#128](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/128) |
 | Nitro ANV16S-41 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense v4 | ❌ | [LS#61](https://github.com/0x7375646F/Linuwu-Sense/issues/61) |
 | Nitro AN16-41, AN16-43 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense v4 | ✅ | [LS#17](https://github.com/0x7375646F/Linuwu-Sense/issues/17) |
 | Nitro AN16-42 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense v4 | ✅ | [LS#85](https://github.com/0x7375646F/Linuwu-Sense/issues/85) |
-| Nitro AN515-45 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense v4 | ✅ | [LS#92](https://github.com/0x7375646F/Linuwu-Sense/issues/92), [DLS#12](https://github.com/PXDiv/Div-Linuwu-Sense/issues/12) |
 | Nitro AN517-54 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense v4 | ✅ | [DLS#5](https://github.com/PXDiv/Div-Linuwu-Sense/issues/5) |
+| Nitro AN517-41, AN17-51 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense v4 | ✅ | [LS#124](https://github.com/0x7375646F/Linuwu-Sense/issues/124), [LS#107](https://github.com/0x7375646F/Linuwu-Sense/issues/107) |
 | Predator PH16-71, PH18-71 | ✅ | ✅ | ✅ | ❌ | ❌ | PredatorSense | ❌ | upstream, Linuwu-Sense |
 | Predator PH18-73 | ✅ | ✅ | ✅ | ❌ | ❌ | PredatorSense | ❌ | [LS#123](https://github.com/0x7375646F/Linuwu-Sense/issues/123) |
-| Predator PHN16-73 | ✅ | ✅ | ✅ | ❌ | ❌ | PredatorSense | ❌ | [LS#126](https://github.com/0x7375646F/Linuwu-Sense/issues/126) |
+| Predator PHN16-73 | ✅ | ✅ | ✅ | ❌ | ❌ | PredatorSense | ✅ | [LS#126](https://github.com/0x7375646F/Linuwu-Sense/issues/126), keyboard: [LS#103](https://github.com/0x7375646F/Linuwu-Sense/issues/103) |
 | Predator PHN18-72 | ✅ | ✅ | ✅ | ❌ | ❌ | PredatorSense | ❌ | [DAMX#123](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/123) |
 | Predator PTX17-71 | ✅ | ✅ | ✅ | ❌ | ❌ | PredatorSense | ❌ | [LS#83](https://github.com/0x7375646F/Linuwu-Sense/issues/83) |
 | Predator PHN16-71 | ✅ | ✅ | ✅ | ❌ | ❌ | PredatorSense | ✅ | upstream, Linuwu-Sense |
@@ -88,8 +90,9 @@ The thermal profile is the kernel's standard [platform profile interface](https:
 | Predator PHN16-72 | ✅ | ✅ | ✅ | ✅ | ✅ | PredatorSense | ✅ | upstream, Linuwu-Sense |
 | Predator PH315-53 | ❌ | ✅ | ✅ | ❌ | ✅ | PredatorSense | ✅ | upstream, [LS#98](https://github.com/0x7375646F/Linuwu-Sense/issues/98), [LS#121](https://github.com/0x7375646F/Linuwu-Sense/issues/121) |
 | Predator PH315-52 | ❌ | ✅ | ✅ | ❌ | ✅ | PredatorSense | ✅ | [LS#119](https://github.com/0x7375646F/Linuwu-Sense/issues/119), turbo key only |
+| Predator PH315-54 | ✅ | ✅ | ✅ | ❌ | ✅ | PredatorSense | ✅ | [LS#55](https://github.com/0x7375646F/Linuwu-Sense/issues/55), untested |
 | Predator PH16-72, PT14-51 | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | upstream |
-| Predator PHN16S-71 | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | [LS#101](https://github.com/0x7375646F/Linuwu-Sense/issues/101), [DAMX#270](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/270) |
+| Predator PHN16S-71, also reported as PHIN16S-71 | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | [LS#101](https://github.com/0x7375646F/Linuwu-Sense/issues/101), [DAMX#270](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/270), [LS#103](https://github.com/0x7375646F/Linuwu-Sense/issues/103) |
 | Aspire A315-58G | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | upstream |
 
 The columns:
@@ -102,16 +105,17 @@ The columns:
 - **Sense settings**: which set of [NitroSense and PredatorSense settings](#what-it-adds-to-the-upstream-driver) the model gets. "NitroSense v4" means a Nitro whose firmware offers the full PredatorSense set of settings; its directory is still called `nitro_sense`.
 - **Four-zone RGB**: the four-zone keyboard lighting controls.
 
-In the "Reported in" column, "upstream" means the model is supported by the kernel's own driver, and the features added here come from the reports alongside it. "Linuwu-Sense" without an issue number means the model is in [Linuwu-Sense's own model table](https://github.com/0x7375646F/Linuwu-Sense/blob/73a25ec243a44ba2b1703e8d0a76fa2735062506/src/linuwu_sense.c#L591-L957), with no separate report. For the PH315-52 only the turbo key has been reported working; it is given the PH315-53's settings as the closest model, which is untested. LS, DLS and DAMX are the issue trackers of [Linuwu-Sense](https://github.com/0x7375646F/Linuwu-Sense/issues), [Div-Linuwu-Sense](https://github.com/PXDiv/Div-Linuwu-Sense/issues) and [DAMX](https://github.com/PXDiv/Div-Acer-Manager-Max/issues); the driver's DMI table, `acer_quirks` in [`src/acer-wmi.c`](src/acer-wmi.c), cites the same reports.
+In the "Reported in" column, "upstream" means the model is supported by the kernel's own driver, and the features added here come from the reports alongside it. "Linuwu-Sense" without an issue number means the model is in [Linuwu-Sense's own model table](https://github.com/0x7375646F/Linuwu-Sense/blob/73a25ec243a44ba2b1703e8d0a76fa2735062506/src/linuwu_sense.c#L591-L957), with no separate report. For the PH315-52 only the turbo key has been reported working; it is given the PH315-53's settings as the closest model, which is untested. The PH315-54's settings come from a pull request whose author was not sure that they all work. LS, DLS and DAMX are the issue trackers of [Linuwu-Sense](https://github.com/0x7375646F/Linuwu-Sense/issues), [Div-Linuwu-Sense](https://github.com/PXDiv/Div-Linuwu-Sense/issues) and [DAMX](https://github.com/PXDiv/Div-Acer-Manager-Max/issues); the driver's DMI table, `acer_quirks` in [`src/acer-wmi.c`](src/acer-wmi.c), cites the same reports.
 
 ### Known issues
 
 - **ANV15-51**: the firmware rejects the performance profile with an I/O error, although it is offered, as in the upstream driver ([patch](https://patchwork.kernel.org/project/platform-driver-x86/patch/20260920053918.1888-1-justinyvar@gmail.com/)).
 - **ANV15-51 and ANV15-52**: the NitroSense key is an ordinary keyboard scancode, `0xf5`, rather than a WMI event, so this driver never sees it. systemd's [hwdb](https://www.freedesktop.org/software/systemd/man/latest/hwdb.html) maps it to `prog1` on the ANV15-51 ([systemd#38415](https://github.com/systemd/systemd/pull/38415)); bind that key in userspace to cycle profiles ([LS#117](https://github.com/0x7375646F/Linuwu-Sense/issues/117)).
-- **AN515-58 and AN515-55**: the four-zone keyboard needs a different lighting protocol, without which the static effect turns the AN515-58's lights off ([LS#99](https://github.com/0x7375646F/Linuwu-Sense/issues/99)). The driver uses the protocol from [fabiannabil1's fix](https://github.com/fabiannabil1/Linuwu-AN515-58-Linuwu-Sense-Fix), which [BillyAddlers' fork](https://github.com/BillyAddlers/Linuwu-Sense-AN515-55-Patch) confirmed on the AN515-55; this rewrite of it has not been tested on either model.
+- **AN515-58, AN515-55 and AN515-44**: the four-zone keyboard needs a different lighting protocol, without which the static effect turns the AN515-58's lights off ([LS#99](https://github.com/0x7375646F/Linuwu-Sense/issues/99)). The driver uses the protocol from [fabiannabil1's fix](https://github.com/fabiannabil1/Linuwu-AN515-58-Linuwu-Sense-Fix), which [BillyAddlers' fork](https://github.com/BillyAddlers/Linuwu-Sense-AN515-55-Patch) confirmed on the AN515-55, and [LS#146](https://github.com/0x7375646F/Linuwu-Sense/issues/146) on the AN515-44; this rewrite of it has not been tested on any of them.
 - **AN515-58**: on BIOS V2.19 the battery limiter is accepted but has no effect ([DAMX#184](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/184)), which is firmware behaviour.
-- **PHN16S-71**: the fans read 0 RPM and do not respond to control ([DAMX#270](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/270)), so only the platform profile and temperatures are enabled.
-- **PHN16S-71 and PHN18-72**: the keyboard lighting does not respond to the WMI methods ([LS#101](https://github.com/0x7375646F/Linuwu-Sense/issues/101), [DAMX#123](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/123)), so four-zone control is not enabled on them. Nor is it enabled on the PHN16-73 and ANV16S-41, for which no report says it works.
+- **PHN16S-71**: the fans read 0 RPM and do not respond to control ([DAMX#270](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/270)), so only the platform profile and temperatures are enabled. [LS#103](https://github.com/0x7375646F/Linuwu-Sense/issues/103) reports the keyboard and the PredatorSense settings working on another PHN16S-71, which disagrees with both reports, so they stay disabled.
+- **PHN16S-71 and PHN18-72**: the keyboard lighting does not respond to the WMI methods ([LS#101](https://github.com/0x7375646F/Linuwu-Sense/issues/101), [DAMX#123](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/123)), so four-zone control is not enabled on them. Nor is it enabled on the ANV16S-41, whose keyboard lighting is driven by a separate HID controller ([LS#127](https://github.com/0x7375646F/Linuwu-Sense/issues/127)).
+- **AN515-45**: only the neon, wave, shifting and zoom effects light the keyboard, and per-zone colours are accepted but never shown ([LS#139](https://github.com/0x7375646F/Linuwu-Sense/issues/139)).
 - **Per-key RGB keyboards**, such as the Helios 16's, are not supported; the four-zone methods have no effect on them ([DAMX#237](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/237)).
 - **AN515-57**: writes to `lcd_override` are accepted but the value does not change, so the model may lack LCD overdrive; this is being investigated before the setting is removed for it.
 - **AN515-47**: LCD overdrive has no effect, so it gets the NitroSense settings without it ([DAMX#44](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/44)).

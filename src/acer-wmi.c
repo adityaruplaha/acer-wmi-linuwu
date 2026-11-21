@@ -589,13 +589,25 @@ static struct quirk_entry quirk_acer_nitro_anv15_51 = {
 
 /*
  * Older Nitro models do not implement the platform profile interface. The
- * AN515-55's keyboard uses the alternative lighting protocol.
+ * keyboards of the AN515-55 and AN515-44 use the alternative lighting
+ * protocol.
  */
 static struct quirk_entry quirk_acer_nitro_an515_55 = {
 	.hwmon = true,
 	.sense = ACER_SENSE_NITRO,
 	.four_zone_kbd = true,
 	.four_zone_kbd_alt = true,
+};
+
+/*
+ * As the AN515-55, but with the standard lighting protocol. The platform
+ * profile fails to register with -EIO, and only the neon, wave, shifting and
+ * zoom effects light the keyboard.
+ */
+static struct quirk_entry quirk_acer_nitro_an515_45 = {
+	.hwmon = true,
+	.sense = ACER_SENSE_NITRO,
+	.four_zone_kbd = true,
 };
 
 /*
@@ -643,6 +655,17 @@ static struct quirk_entry quirk_acer_predator_ph315_53 = {
 	.cpu_fans = 1,
 	.gpu_fans = 1,
 	.hwmon = true,
+	.sense = ACER_SENSE_PREDATOR,
+	.four_zone_kbd = true,
+};
+
+/* As the PH315-53, but with the platform profile interface */
+static struct quirk_entry quirk_acer_predator_ph315_54 = {
+	.turbo = true,
+	.cpu_fans = 1,
+	.gpu_fans = 1,
+	.hwmon = true,
+	.platform_profile = true,
 	.sense = ACER_SENSE_PREDATOR,
 	.four_zone_kbd = true,
 };
@@ -934,24 +957,34 @@ static const struct dmi_system_id acer_quirks[] __initconst = {
 		.driver_data = &quirk_acer_nitro_four_zone,
 	},
 	{
-		/* DAMX Compatibility.md */
+		/* LS#107 */
+		.callback = dmi_matched,
+		.ident = "Acer Nitro AN17-51",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Nitro AN17-51"),
+		},
+		.driver_data = &quirk_acer_nitro_v4_four_zone,
+	},
+	{
+		/* DAMX Compatibility.md; settings and keyboard: LS#146 */
 		.callback = dmi_matched,
 		.ident = "Acer Nitro AN515-44",
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
 			DMI_MATCH(DMI_PRODUCT_NAME, "Nitro AN515-44"),
 		},
-		.driver_data = &quirk_acer_nitro_v4,
+		.driver_data = &quirk_acer_nitro_an515_55,
 	},
 	{
-		/* LS#92, DLS#12 */
+		/* LS#92, DLS#12; settings: LS#139 */
 		.callback = dmi_matched,
 		.ident = "Acer Nitro AN515-45",
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
 			DMI_MATCH(DMI_PRODUCT_NAME, "Nitro AN515-45"),
 		},
-		.driver_data = &quirk_acer_nitro_v4_four_zone,
+		.driver_data = &quirk_acer_nitro_an515_45,
 	},
 	{
 		/* DLS#4 */
@@ -972,6 +1005,16 @@ static const struct dmi_system_id acer_quirks[] __initconst = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "Nitro AN515-47"),
 		},
 		.driver_data = &quirk_acer_nitro,
+	},
+	{
+		/* LS#34 */
+		.callback = dmi_matched,
+		.ident = "Acer Nitro AN515-54",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Nitro AN515-54"),
+		},
+		.driver_data = &quirk_acer_nitro_v4,
 	},
 	{
 		/* LS#40; keyboard: BillyAddlers/Linuwu-Sense-AN515-55-Patch */
@@ -1002,6 +1045,16 @@ static const struct dmi_system_id acer_quirks[] __initconst = {
 			DMI_MATCH(DMI_PRODUCT_NAME, "Nitro AN515-58"),
 		},
 		.driver_data = &quirk_acer_nitro_an515_58,
+	},
+	{
+		/* LS#124 */
+		.callback = dmi_matched,
+		.ident = "Acer Nitro AN517-41",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Nitro AN517-41"),
+		},
+		.driver_data = &quirk_acer_nitro_v4_four_zone,
 	},
 	{
 		/* DLS#5 */
@@ -1104,6 +1157,16 @@ static const struct dmi_system_id acer_quirks[] __initconst = {
 		.driver_data = &quirk_acer_predator_ph315_53,
 	},
 	{
+		/* LS#55 */
+		.callback = dmi_matched,
+		.ident = "Acer Predator PH315-54",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Predator PH315-54"),
+		},
+		.driver_data = &quirk_acer_predator_ph315_54,
+	},
+	{
 		/* Four-zone keyboard: Linuwu-Sense commit 28f19e6 */
 		.callback = dmi_matched,
 		.ident = "Acer Predator PHN16-71",
@@ -1142,14 +1205,14 @@ static const struct dmi_system_id acer_quirks[] __initconst = {
 		.driver_data = &quirk_acer_predator_phn16_72,
 	},
 	{
-		/* LS#126 */
+		/* LS#126; keyboard: LS#103 */
 		.callback = dmi_matched,
 		.ident = "Acer Predator PHN16-73",
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
 			DMI_MATCH(DMI_PRODUCT_NAME, "Predator PHN16-73"),
 		},
-		.driver_data = &quirk_acer_predator_v4,
+		.driver_data = &quirk_acer_predator_v4_four_zone,
 	},
 	{
 		/* LS#101, DAMX#270 */
@@ -1158,6 +1221,16 @@ static const struct dmi_system_id acer_quirks[] __initconst = {
 		.matches = {
 			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
 			DMI_MATCH(DMI_PRODUCT_NAME, "Predator PHN16S-71"),
+		},
+		.driver_data = &quirk_acer_predator_phn16s_71,
+	},
+	{
+		/* LS#103, for firmware that reports the name with this typo */
+		.callback = dmi_matched,
+		.ident = "Acer Predator PHIN16S-71",
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "Predator PHIN16S-71"),
 		},
 		.driver_data = &quirk_acer_predator_phn16s_71,
 	},
