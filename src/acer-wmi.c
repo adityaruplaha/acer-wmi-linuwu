@@ -646,6 +646,14 @@ static struct quirk_entry quirk_acer_nitro_v4_four_zone = {
 	.sense = ACER_SENSE_NITRO_V4,
 	.four_zone_kbd = true,
 };
+static struct quirk_entry quirk_acer_nitro_an515_57 = {
+	.hwmon = true,
+	.platform_profile = true,
+	.pwm = true,
+	.sense = ACER_SENSE_NITRO_V4,
+	.four_zone_kbd = true,
+	.four_zone_kbd_arm = true,
+};
 
 /*
  * PredatorSense v3 firmware: the PredatorSense settings work, but there is no
@@ -1037,7 +1045,7 @@ static const struct dmi_system_id acer_quirks[] __initconst = {
 			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
 			DMI_MATCH(DMI_PRODUCT_NAME, "Nitro AN515-57"),
 		},
-		.driver_data = &quirk_acer_nitro_v4,
+		.driver_data = &quirk_acer_nitro_an515_57,
 	},
 	{
 		/* Keyboard: fabiannabil1/Linuwu-AN515-58-Linuwu-Sense-Fix, LS#99 */
@@ -3716,8 +3724,9 @@ static const struct attribute_group predator_sense_group = {
  * selected afterwards rather than before. Without it the static effect turns
  * the AN515-58's keyboard lights off.
  *
- * The PH315-53 needs the zones switched on the same way, but only once: its
- * keyboard stays dark until then, and stays lit until the firmware resets.
+ * The PH315-53 and the AN515-57 need the zones switched on the same way, but
+ * only once: their keyboards stay dark until then. The PH315-53's then stays
+ * lit until the firmware resets.
  */
 enum acer_kbd_effect_mode {
 	ACER_KBD_EFFECT_STATIC		= 0,

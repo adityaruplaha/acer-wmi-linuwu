@@ -70,7 +70,7 @@ The thermal profile is the kernel's standard [platform profile interface](https:
 | Nitro AN17-41, AN17-42 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense | ✅ | [DAMX#99](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/99), [DAMX#64](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/64) |
 | Nitro AN515-46 | ✅ | ✅ | ✅ | ✅ | ❌ | NitroSense | ✅ | [DLS#4](https://github.com/PXDiv/Div-Linuwu-Sense/issues/4) |
 | Nitro AN515-58 | ✅ | ✅ | ✅ | ✅ | ❌ | NitroSense | ✅ | upstream, Linuwu-Sense, keyboard: [fabiannabil1's fix](https://github.com/fabiannabil1/Linuwu-AN515-58-Linuwu-Sense-Fix) |
-| Nitro AN515-57 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense v4 | ❌ | [notalhanz/Linuwu-Sense](https://github.com/notalhanz/Linuwu-Sense/commit/c63f98e0a445a9387fc28c569df71f719edb1a8f) |
+| Nitro AN515-57 | ✅ | ✅ | ✅ | ✅ | ❌ | NitroSense v4 | ✅ | [notalhanz/Linuwu-Sense](https://github.com/notalhanz/Linuwu-Sense/commit/c63f98e0a445a9387fc28c569df71f719edb1a8f), keyboard, its brightness keys and hwmon pwm tested on BIOS V1.22 |
 | Nitro AN515-54 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense v4 | ❌ | [LS#34](https://github.com/0x7375646F/Linuwu-Sense/issues/34) |
 | Nitro ANV16-41 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense v4 | ❌ | [LS#37](https://github.com/0x7375646F/Linuwu-Sense/issues/37) |
 | Nitro ANV16-42 | ✅ | ✅ | ✅ | ❌ | ❌ | NitroSense v4 | ❌ | [DAMX#174](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/174) |
