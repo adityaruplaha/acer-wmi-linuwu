@@ -354,6 +354,7 @@ struct hotkey_function_type_aa {
 #define ACER_CAP_LCD_OVERDRIVE		BIT(17)
 #define ACER_CAP_BOOT_ANIMATION_SOUND	BIT(18)
 #define ACER_CAP_FOUR_ZONE_KBD		BIT(19)
+#define ACER_CAP_COOL_BOOST		BIT(20)
 
 /* Settings offered by NitroSense, and the superset offered by PredatorSense */
 #define ACER_CAP_NITRO_SENSE		(ACER_CAP_FAN_SPEED | \
@@ -486,6 +487,7 @@ struct quirk_entry {
 	bool four_zone_kbd;
 	bool four_zone_kbd_alt;
 	bool four_zone_kbd_arm;
+	bool cool_boost;
 };
 
 static struct quirk_entry *quirks;
@@ -525,6 +527,9 @@ static void __init set_quirks(void)
 
 	if (quirks->four_zone_kbd)
 		interface->capability |= ACER_CAP_FOUR_ZONE_KBD;
+
+	if (quirks->cool_boost)
+		interface->capability |= ACER_CAP_COOL_BOOST;
 }
 
 static int __init dmi_matched(const struct dmi_system_id *dmi)
@@ -653,6 +658,7 @@ static struct quirk_entry quirk_acer_nitro_an515_57 = {
 	.sense = ACER_SENSE_NITRO_V4,
 	.four_zone_kbd = true,
 	.four_zone_kbd_arm = true,
+	.cool_boost = true,
 };
 
 /*
@@ -3650,6 +3656,65 @@ static ssize_t fan_speed_store(struct device *dev,
 }
 static DEVICE_ATTR_RW(fan_speed);
 
+/*
+ * CoolBoost, NitroSense's setting that temporarily raises the fan speed
+ */
+#define ACER_WMID3_FUNCTION_COOL_BOOST	0x07
+#define ACER_COOL_BOOST_GET		0x0207
+#define ACER_COOL_BOOST_GET_MASK	GENMASK_ULL(15, 8)
+#define ACER_COOL_BOOST_SET_MASK	GENMASK_ULL(23, 16)
+
+static int acer_get_cool_boost(bool *enabled)
+{
+	u64 result;
+	int err;
+
+	err = WMID3_execute_u64(ACER_WMID3_GET_FUNCTION_METHODID,
+				ACER_COOL_BOOST_GET, &result);
+	if (err)
+		return err;
+
+	*enabled = FIELD_GET(ACER_COOL_BOOST_GET_MASK, result);
+
+	return 0;
+}
+
+static ssize_t cool_boost_show(struct device *dev,
+			       struct device_attribute *attr, char *buf)
+{
+	bool enabled;
+	int err;
+
+	err = acer_get_cool_boost(&enabled);
+	if (err)
+		return err;
+
+	return sysfs_emit(buf, "%d\n", enabled);
+}
+
+static ssize_t cool_boost_store(struct device *dev,
+				struct device_attribute *attr,
+				const char *buf, size_t count)
+{
+	bool enable;
+	u64 input;
+	int err;
+
+	err = kstrtobool(buf, &enable);
+	if (err)
+		return err;
+
+	input = ACER_WMID3_FUNCTION_COOL_BOOST |
+		FIELD_PREP(ACER_COOL_BOOST_SET_MASK, enable);
+
+	err = WMID3_execute_u64(ACER_WMID3_SET_FUNCTION_METHODID, input, NULL);
+	if (err)
+		return err;
+
+	return count;
+}
+static DEVICE_ATTR_RW(cool_boost);
+
 /* Read by DAMX to report the driver in use */
 static ssize_t version_show(struct device *dev,
 			    struct device_attribute *attr, char *buf)
@@ -3667,6 +3732,7 @@ static struct attribute *acer_sense_attrs[] = {
 	&dev_attr_lcd_overdrive.attr,
 	&dev_attr_lcd_override.attr,
 	&dev_attr_boot_animation_sound.attr,
+	&dev_attr_cool_boost.attr,
 	&dev_attr_version.attr,
 	NULL
 };
@@ -3690,6 +3756,8 @@ static umode_t acer_sense_attr_visible(struct kobject *kobj,
 		cap = ACER_CAP_LCD_OVERDRIVE;
 	else if (attr == &dev_attr_boot_animation_sound.attr)
 		cap = ACER_CAP_BOOT_ANIMATION_SOUND;
+	else if (attr == &dev_attr_cool_boost.attr)
+		cap = ACER_CAP_COOL_BOOST;
 	else
 		return attr->mode;
 
@@ -4520,6 +4588,15 @@ static int acer_platform_probe(struct platform_device *device)
 	if (has_cap(ACER_CAP_LCD_OVERDRIVE) && !acer_lcd_overdrive_supported()) {
 		dev_info(&device->dev, "LCD overdrive is not supported by the firmware\n");
 		interface->capability &= ~ACER_CAP_LCD_OVERDRIVE;
+	}
+
+	if (has_cap(ACER_CAP_COOL_BOOST)) {
+		bool enabled;
+
+		if (acer_get_cool_boost(&enabled)) {
+			dev_info(&device->dev, "CoolBoost is not supported by the firmware\n");
+			interface->capability &= ~ACER_CAP_COOL_BOOST;
+		}
 	}
 
 	if (has_cap(ACER_CAP_FOUR_ZONE_KBD) && quirks->four_zone_kbd_arm) {

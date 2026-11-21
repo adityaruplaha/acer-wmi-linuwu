@@ -76,6 +76,14 @@ KernelVersion:	out of tree
 Description:
 		(RW) The firmware's boot animation and sound, when set to 1.
 
+What:		/sys/devices/platform/acer-wmi/{nitro,predator}_sense/cool_boost
+Date:		November 2026
+KernelVersion:	out of tree
+Description:
+		(RW) NitroSense's CoolBoost, which temporarily raises the fan
+		speed, when set to 1. Present only on models known to have
+		it, and only when the firmware reports support for it.
+
 What:		/sys/devices/platform/acer-wmi/{nitro,predator}_sense/version
 Date:		September 2026
 KernelVersion:	out of tree
