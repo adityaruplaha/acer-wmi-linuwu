@@ -356,6 +356,7 @@ struct hotkey_function_type_aa {
 #define ACER_CAP_FOUR_ZONE_KBD		BIT(19)
 #define ACER_CAP_COOL_BOOST		BIT(20)
 #define ACER_CAP_WIN_KEY_LOCK		BIT(21)
+#define ACER_CAP_BATTERY_BOOST		BIT(22)
 
 /* Settings offered by NitroSense, and the superset offered by PredatorSense */
 #define ACER_CAP_NITRO_SENSE		(ACER_CAP_FAN_SPEED | \
@@ -490,6 +491,7 @@ struct quirk_entry {
 	bool four_zone_kbd_arm;
 	bool cool_boost;
 	bool win_key_lock;
+	bool battery_boost;
 };
 
 static struct quirk_entry *quirks;
@@ -535,6 +537,9 @@ static void __init set_quirks(void)
 
 	if (quirks->win_key_lock)
 		interface->capability |= ACER_CAP_WIN_KEY_LOCK;
+
+	if (quirks->battery_boost)
+		interface->capability |= ACER_CAP_BATTERY_BOOST;
 }
 
 static int __init dmi_matched(const struct dmi_system_id *dmi)
@@ -665,6 +670,7 @@ static struct quirk_entry quirk_acer_nitro_an515_57 = {
 	.four_zone_kbd_arm = true,
 	.cool_boost = true,
 	.win_key_lock = true,
+	.battery_boost = true,
 };
 
 /*
@@ -3782,6 +3788,41 @@ static ssize_t cool_boost_store(struct device *dev,
 }
 static DEVICE_ATTR_RW(cool_boost);
 
+/*
+ * Battery boost status, read-only, in byte 5 of GetGamingSysInfo command 2.
+ * NitroSense reads it as the battery boost state; there is no way to set it.
+ */
+#define ACER_BATTERY_BOOST_MASK		GENMASK_ULL(47, 40)
+
+static int acer_get_battery_boost(bool *active)
+{
+	u64 result;
+	int err;
+
+	err = WMID_gaming_get_sys_info(ACER_WMID_CMD_GET_PREDATOR_V4_BAT_STATUS,
+				       &result);
+	if (err)
+		return err;
+
+	*active = FIELD_GET(ACER_BATTERY_BOOST_MASK, result);
+
+	return 0;
+}
+
+static ssize_t battery_boost_show(struct device *dev,
+				  struct device_attribute *attr, char *buf)
+{
+	bool active;
+	int err;
+
+	err = acer_get_battery_boost(&active);
+	if (err)
+		return err;
+
+	return sysfs_emit(buf, "%d\n", active);
+}
+static DEVICE_ATTR_RO(battery_boost);
+
 /* Read by DAMX to report the driver in use */
 static ssize_t version_show(struct device *dev,
 			    struct device_attribute *attr, char *buf)
@@ -3801,6 +3842,7 @@ static struct attribute *acer_sense_attrs[] = {
 	&dev_attr_boot_animation_sound.attr,
 	&dev_attr_cool_boost.attr,
 	&dev_attr_win_key_lock.attr,
+	&dev_attr_battery_boost.attr,
 	&dev_attr_version.attr,
 	NULL
 };
@@ -3828,6 +3870,8 @@ static umode_t acer_sense_attr_visible(struct kobject *kobj,
 		cap = ACER_CAP_COOL_BOOST;
 	else if (attr == &dev_attr_win_key_lock.attr)
 		cap = ACER_CAP_WIN_KEY_LOCK;
+	else if (attr == &dev_attr_battery_boost.attr)
+		cap = ACER_CAP_BATTERY_BOOST;
 	else
 		return attr->mode;
 
@@ -4672,6 +4716,15 @@ static int acer_platform_probe(struct platform_device *device)
 	if (has_cap(ACER_CAP_WIN_KEY_LOCK) && !acer_win_key_lock_supported()) {
 		dev_info(&device->dev, "Windows key lock is not supported by the firmware\n");
 		interface->capability &= ~ACER_CAP_WIN_KEY_LOCK;
+	}
+
+	if (has_cap(ACER_CAP_BATTERY_BOOST)) {
+		bool active;
+
+		if (acer_get_battery_boost(&active)) {
+			dev_info(&device->dev, "Battery boost status is not supported by the firmware\n");
+			interface->capability &= ~ACER_CAP_BATTERY_BOOST;
+		}
 	}
 
 	if (has_cap(ACER_CAP_FOUR_ZONE_KBD) && quirks->four_zone_kbd_arm) {

@@ -32,6 +32,7 @@ The module is built under the same name as the in-tree driver, `acer_wmi`, and D
 | `boot_animation_sound` | `1` enables the boot animation and sound (Predator, and NitroSense v4) |
 | `cool_boost` | `1` enables CoolBoost, which temporarily raises the fan speed (AN515-57, tested on BIOS V1.22) |
 | `win_key_lock` | `1` disables the Windows and menu keys (AN515-57, tested on BIOS V1.22) |
+| `battery_boost` | read-only, the firmware's battery boost state, `0` or `1` (AN515-57; reads `1` on AC on BIOS V1.22, meaning unconfirmed) |
 | `version` | the version of this package, such as `7.3.0.1` (see [Layout](#layout)), read by [DAMX](#damx) |
 
 A model has one of the two directories, not both: `predator_sense` on Predators, `nitro_sense` on Nitros.

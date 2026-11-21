@@ -92,6 +92,14 @@ Description:
 		only on models known to have it, and only when the firmware
 		reports support for it.
 
+What:		/sys/devices/platform/acer-wmi/{nitro,predator}_sense/battery_boost
+Date:		November 2026
+KernelVersion:	out of tree
+Description:
+		(RO) The firmware's battery boost state, 0 or 1, which
+		NitroSense reads. It cannot be set. Present only on models
+		known to have it.
+
 What:		/sys/devices/platform/acer-wmi/{nitro,predator}_sense/version
 Date:		September 2026
 KernelVersion:	out of tree
