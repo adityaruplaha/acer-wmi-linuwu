@@ -4112,9 +4112,6 @@ static ssize_t four_zone_mode_store(struct device *dev,
 		direction = 0;
 		break;
 	case ACER_KBD_EFFECT_BREATHING:
-		/* The alternative protocol honours the breathing speed */
-		if (!quirks->four_zone_kbd_alt)
-			speed = 0;
 		direction = 0;
 		break;
 	case ACER_KBD_EFFECT_NEON:

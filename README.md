@@ -41,7 +41,7 @@ A model has one of the two directories, not both: `predator_sense` on Predators,
 
 | Attribute | Format |
 |---|---|
-| `four_zone_mode` | `mode,speed,brightness,direction,red,green,blue`, where mode is 0 static, 1 breathing, 2 neon, 3 wave, 4 shifting, 5 zoom, 6 meteor or 7 twinkling, and direction is 1 right to left or 2 left to right |
+| `four_zone_mode` | `mode,speed,brightness,direction,red,green,blue`, where mode is 0 static, 1 breathing, 2 neon, 3 wave, 4 shifting, 5 zoom, 6 meteor or 7 twinkling, and direction is 1 right to left or 2 left to right; on the AN515-57 speed 0 turns some effects off and freezes most others, so use 1 to 9, 9 the fastest |
 | `per_zone_mode` | `RRGGBB,RRGGBB,RRGGBB,RRGGBB,brightness`, zones from left to right |
 
 Per-key RGB keyboards are not supported. The full description of every attribute, in the kernel's [ABI documentation format](https://docs.kernel.org/admin-guide/abi.html), is in [`Documentation/ABI/testing/sysfs-platform-acer-wmi`](Documentation/ABI/testing/sysfs-platform-acer-wmi).

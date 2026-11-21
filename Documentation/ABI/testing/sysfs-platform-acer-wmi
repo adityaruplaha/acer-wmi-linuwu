@@ -125,9 +125,12 @@ Description:
 		==========  =================================================
 
 		Values the chosen effect does not use are cleared: speed and
-		direction for static and breathing, colour and direction for
-		neon, colour for wave, and direction for zoom, meteor and
-		twinkling.
+		direction for static, direction for breathing, colour and
+		direction for neon, colour for wave, and direction for zoom,
+		meteor and twinkling.
+
+		On the AN515-57, speed 0 turns some animated effects off and
+		freezes most of the others, so use 1 to 9, 9 the fastest.
 
 What:		/sys/devices/platform/acer-wmi/four_zoned_kb/per_zone_mode
 Date:		September 2026
