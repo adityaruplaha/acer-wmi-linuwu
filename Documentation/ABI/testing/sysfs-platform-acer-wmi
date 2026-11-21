@@ -60,7 +60,8 @@ Date:		November 2026
 KernelVersion:	out of tree
 Description:
 		(RW) LCD overdrive, which reduces the panel's response time,
-		when set to 1.
+		when set to 1. Present only when the firmware reports support
+		for it.
 
 What:		/sys/devices/platform/acer-wmi/{nitro,predator}_sense/lcd_override
 Date:		September 2026

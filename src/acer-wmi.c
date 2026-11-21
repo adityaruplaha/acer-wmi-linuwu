@@ -3423,26 +3423,55 @@ static DEVICE_ATTR_RW(backlight_timeout);
 /*
  * LCD overdrive, which reduces the panel's response time. Linuwu-Sense named
  * the attribute "lcd_override", which is kept as a deprecated alias.
+ *
+ * Its state is byte 6 of GetGamingProfile(0), where 0xff means the firmware
+ * does not support it. NitroSense hides the setting then, and so does this
+ * driver, at probe.
  */
 #define ACER_GAMING_PROFILE_STATUS_MASK		GENMASK_ULL(7, 0)
 #define ACER_GAMING_PROFILE_LCD_OVERDRIVE	0x10
 #define ACER_GAMING_PROFILE_LCD_OVERDRIVE_ON	BIT_ULL(48)
+#define ACER_GAMING_PROFILE_LCD_OVERDRIVE_MASK	GENMASK_ULL(55, 48)
+#define ACER_GAMING_PROFILE_LCD_OVERDRIVE_UNSUPPORTED	0xff
+
+static int acer_get_gaming_profile(u64 *result)
+{
+	int err;
+
+	err = WMI_gaming_execute_u32_u64(ACER_WMID_GET_GAMING_PROFILE_METHODID, 0,
+					 result);
+	if (err)
+		return err;
+
+	if (FIELD_GET(ACER_GAMING_PROFILE_STATUS_MASK, *result))
+		return -EIO;
+
+	return 0;
+}
+
+static bool acer_lcd_overdrive_supported(void)
+{
+	u64 result;
+
+	if (acer_get_gaming_profile(&result))
+		return false;
+
+	return FIELD_GET(ACER_GAMING_PROFILE_LCD_OVERDRIVE_MASK, result) !=
+	       ACER_GAMING_PROFILE_LCD_OVERDRIVE_UNSUPPORTED;
+}
 
 static ssize_t lcd_overdrive_show(struct device *dev,
 				  struct device_attribute *attr, char *buf)
 {
-	acpi_status status;
 	u64 result;
+	int err;
 
-	status = WMI_gaming_execute_u64(ACER_WMID_GET_GAMING_PROFILE_METHODID, 0,
-					&result);
-	if (ACPI_FAILURE(status))
-		return -EIO;
+	err = acer_get_gaming_profile(&result);
+	if (err)
+		return err;
 
-	if (FIELD_GET(ACER_GAMING_PROFILE_STATUS_MASK, result))
-		return -EIO;
-
-	return sysfs_emit(buf, "%d\n", !!(result & ACER_GAMING_PROFILE_LCD_OVERDRIVE_ON));
+	return sysfs_emit(buf, "%d\n",
+			  FIELD_GET(ACER_GAMING_PROFILE_LCD_OVERDRIVE_MASK, result) == 1);
 }
 
 static ssize_t lcd_overdrive_store(struct device *dev,
@@ -4452,6 +4481,11 @@ static int acer_platform_probe(struct platform_device *device)
 		err = acer_wmi_hwmon_init();
 		if (err)
 			goto error_hwmon;
+	}
+
+	if (has_cap(ACER_CAP_LCD_OVERDRIVE) && !acer_lcd_overdrive_supported()) {
+		dev_info(&device->dev, "LCD overdrive is not supported by the firmware\n");
+		interface->capability &= ~ACER_CAP_LCD_OVERDRIVE;
 	}
 
 	if (has_cap(ACER_CAP_FOUR_ZONE_KBD) && quirks->four_zone_kbd_arm) {

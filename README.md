@@ -15,7 +15,7 @@ Several similar names refer to different things:
 
 The module is built under the same name as the in-tree driver, `acer_wmi`, and DKMS installs it where it takes precedence over the in-tree copy. Nothing needs blacklisting, and everything the upstream driver does (hotkeys, [rfkill](https://docs.kernel.org/driver-api/rfkill.html), [platform profiles](https://docs.kernel.org/userspace-api/sysfs-platform_profile.html), [hwmon](https://docs.kernel.org/hwmon/sysfs-interface.html) sensors and fan control) keeps working as before.
 
-> **Use at your own risk.** The NitroSense and PredatorSense settings drive undocumented firmware methods, found by reverse engineering Acer's Windows utilities. What is known to work on each model comes from its owners' reports against Linuwu-Sense and its forks, cited in the [table below](#supported-models). This rewrite has been build-tested against kernels 7.2 and 6.18, and tested on hardware only on a Nitro AN515-57 (BIOS V1.14), where the platform profiles, hwmon, rfkill and every NitroSense setting work apart from `lcd_overdrive`. Battery calibration was not exercised.
+> **Use at your own risk.** The NitroSense and PredatorSense settings drive undocumented firmware methods, found by reverse engineering Acer's Windows utilities. What is known to work on each model comes from its owners' reports against Linuwu-Sense and its forks, cited in the [table below](#supported-models). This rewrite has been build-tested against kernels 7.2 and 6.18, and tested on hardware only on a Nitro AN515-57 (BIOS V1.14), where the platform profiles, hwmon, rfkill and every NitroSense setting work apart from LCD overdrive, which its firmware reports unsupported. Battery calibration was not exercised.
 
 ## What it adds to the upstream driver
 
@@ -28,7 +28,7 @@ The module is built under the same name as the in-tree driver, `acer_wmi`, and D
 | `battery_calibration` | `1` starts calibration, `0` stops it; keep the laptop on AC throughout |
 | `usb_charging` | power-off USB charging until the battery drops to `10`, `20` or `30`%, or `0` for off |
 | `backlight_timeout` | `1` turns the keyboard backlight off after 30 seconds idle |
-| `lcd_overdrive` | `1` enables LCD overdrive (Predator, and the Nitro models listed as [NitroSense v4](#supported-models)); `lcd_override`, its name in Linuwu-Sense, is a deprecated alias |
+| `lcd_overdrive` | `1` enables LCD overdrive (Predator, and the Nitro models listed as [NitroSense v4](#supported-models), where the firmware reports support); `lcd_override`, its name in Linuwu-Sense, is a deprecated alias |
 | `boot_animation_sound` | `1` enables the boot animation and sound (Predator, and NitroSense v4) |
 | `version` | the version of this package, such as `7.3.0.1` (see [Layout](#layout)), read by [DAMX](#damx) |
 
@@ -117,7 +117,7 @@ In the "Reported in" column, "upstream" means the model is supported by the kern
 - **PHN16S-71 and PHN18-72**: the keyboard lighting does not respond to the WMI methods ([LS#101](https://github.com/0x7375646F/Linuwu-Sense/issues/101), [DAMX#123](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/123)), so four-zone control is not enabled on them. Nor is it enabled on the ANV16S-41, whose keyboard lighting is driven by a separate HID controller ([LS#127](https://github.com/0x7375646F/Linuwu-Sense/issues/127)).
 - **AN515-45**: only the neon, wave, shifting and zoom effects light the keyboard, and per-zone colours are accepted but never shown ([LS#139](https://github.com/0x7375646F/Linuwu-Sense/issues/139)).
 - **Per-key RGB keyboards**, such as the Helios 16's, are not supported; the four-zone methods have no effect on them ([DAMX#237](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/237)).
-- **AN515-57**: writes to `lcd_overdrive` are accepted but the value does not change, so the model may lack LCD overdrive; this is being investigated before the setting is removed for it.
+- **AN515-57**: the firmware reports LCD overdrive unsupported, so the attribute is hidden.
 - **AN515-47**: LCD overdrive has no effect, so it gets the NitroSense settings without it ([DAMX#44](https://github.com/PXDiv/Div-Acer-Manager-Max/issues/44)).
 
 A model not in the table can try the `nitro_v4=1` or `predator_v4=1` module parameter, which enables the NitroSense v4 or PredatorSense set of features respectively, regardless of the model:
