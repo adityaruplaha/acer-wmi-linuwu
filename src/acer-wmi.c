@@ -351,7 +351,7 @@ struct hotkey_function_type_aa {
 #define ACER_CAP_BATTERY_HEALTH		BIT(14)
 #define ACER_CAP_USB_CHARGING		BIT(15)
 #define ACER_CAP_KBD_BL_TIMEOUT		BIT(16)
-#define ACER_CAP_LCD_OVERRIDE		BIT(17)
+#define ACER_CAP_LCD_OVERDRIVE		BIT(17)
 #define ACER_CAP_BOOT_ANIMATION_SOUND	BIT(18)
 #define ACER_CAP_FOUR_ZONE_KBD		BIT(19)
 
@@ -361,7 +361,7 @@ struct hotkey_function_type_aa {
 					 ACER_CAP_USB_CHARGING | \
 					 ACER_CAP_KBD_BL_TIMEOUT)
 #define ACER_CAP_PREDATOR_SENSE		(ACER_CAP_NITRO_SENSE | \
-					 ACER_CAP_LCD_OVERRIDE | \
+					 ACER_CAP_LCD_OVERDRIVE | \
 					 ACER_CAP_BOOT_ANIMATION_SOUND)
 
 /**
@@ -3421,15 +3421,15 @@ static ssize_t backlight_timeout_store(struct device *dev,
 static DEVICE_ATTR_RW(backlight_timeout);
 
 /*
- * LCD overdrive, which reduces the panel's response time. The attribute keeps
- * the name "lcd_override" from Linuwu-Sense.
+ * LCD overdrive, which reduces the panel's response time. Linuwu-Sense named
+ * the attribute "lcd_override", which is kept as a deprecated alias.
  */
 #define ACER_GAMING_PROFILE_STATUS_MASK		GENMASK_ULL(7, 0)
-#define ACER_GAMING_PROFILE_LCD_OVERRIDE	0x10
-#define ACER_GAMING_PROFILE_LCD_OVERRIDE_ON	BIT_ULL(48)
+#define ACER_GAMING_PROFILE_LCD_OVERDRIVE	0x10
+#define ACER_GAMING_PROFILE_LCD_OVERDRIVE_ON	BIT_ULL(48)
 
-static ssize_t lcd_override_show(struct device *dev,
-				 struct device_attribute *attr, char *buf)
+static ssize_t lcd_overdrive_show(struct device *dev,
+				  struct device_attribute *attr, char *buf)
 {
 	acpi_status status;
 	u64 result;
@@ -3442,14 +3442,14 @@ static ssize_t lcd_override_show(struct device *dev,
 	if (FIELD_GET(ACER_GAMING_PROFILE_STATUS_MASK, result))
 		return -EIO;
 
-	return sysfs_emit(buf, "%d\n", !!(result & ACER_GAMING_PROFILE_LCD_OVERRIDE_ON));
+	return sysfs_emit(buf, "%d\n", !!(result & ACER_GAMING_PROFILE_LCD_OVERDRIVE_ON));
 }
 
-static ssize_t lcd_override_store(struct device *dev,
-				  struct device_attribute *attr,
-				  const char *buf, size_t count)
+static ssize_t lcd_overdrive_store(struct device *dev,
+				   struct device_attribute *attr,
+				   const char *buf, size_t count)
 {
-	u64 input = ACER_GAMING_PROFILE_LCD_OVERRIDE;
+	u64 input = ACER_GAMING_PROFILE_LCD_OVERDRIVE;
 	acpi_status status;
 	bool enable;
 	u64 result;
@@ -3460,7 +3460,7 @@ static ssize_t lcd_override_store(struct device *dev,
 		return err;
 
 	if (enable)
-		input |= ACER_GAMING_PROFILE_LCD_OVERRIDE_ON;
+		input |= ACER_GAMING_PROFILE_LCD_OVERDRIVE_ON;
 
 	status = WMI_gaming_execute_u64(ACER_WMID_SET_GAMING_PROFILE_METHODID, input,
 					&result);
@@ -3472,7 +3472,9 @@ static ssize_t lcd_override_store(struct device *dev,
 
 	return count;
 }
-static DEVICE_ATTR_RW(lcd_override);
+static DEVICE_ATTR_RW(lcd_overdrive);
+static struct device_attribute dev_attr_lcd_override =
+	__ATTR(lcd_override, 0644, lcd_overdrive_show, lcd_overdrive_store);
 
 /*
  * Boot animation and sound
@@ -3600,6 +3602,7 @@ static struct attribute *acer_sense_attrs[] = {
 	&dev_attr_battery_calibration.attr,
 	&dev_attr_usb_charging.attr,
 	&dev_attr_backlight_timeout.attr,
+	&dev_attr_lcd_overdrive.attr,
 	&dev_attr_lcd_override.attr,
 	&dev_attr_boot_animation_sound.attr,
 	&dev_attr_version.attr,
@@ -3620,8 +3623,9 @@ static umode_t acer_sense_attr_visible(struct kobject *kobj,
 		cap = ACER_CAP_USB_CHARGING;
 	else if (attr == &dev_attr_backlight_timeout.attr)
 		cap = ACER_CAP_KBD_BL_TIMEOUT;
-	else if (attr == &dev_attr_lcd_override.attr)
-		cap = ACER_CAP_LCD_OVERRIDE;
+	else if (attr == &dev_attr_lcd_overdrive.attr ||
+		 attr == &dev_attr_lcd_override.attr)
+		cap = ACER_CAP_LCD_OVERDRIVE;
 	else if (attr == &dev_attr_boot_animation_sound.attr)
 		cap = ACER_CAP_BOOT_ANIMATION_SOUND;
 	else

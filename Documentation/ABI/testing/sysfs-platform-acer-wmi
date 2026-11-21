@@ -55,12 +55,19 @@ Description:
 		(RW) Turns the keyboard backlight off after 30 seconds without
 		input when set to 1.
 
-What:		/sys/devices/platform/acer-wmi/{nitro,predator}_sense/lcd_override
-Date:		September 2026
+What:		/sys/devices/platform/acer-wmi/{nitro,predator}_sense/lcd_overdrive
+Date:		November 2026
 KernelVersion:	out of tree
 Description:
 		(RW) LCD overdrive, which reduces the panel's response time,
 		when set to 1.
+
+What:		/sys/devices/platform/acer-wmi/{nitro,predator}_sense/lcd_override
+Date:		September 2026
+KernelVersion:	out of tree
+Description:
+		(RW) Deprecated alias of lcd_overdrive, under the name
+		Linuwu-Sense gave it. Use lcd_overdrive instead.
 
 What:		/sys/devices/platform/acer-wmi/{nitro,predator}_sense/boot_animation_sound
 Date:		September 2026
